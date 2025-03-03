@@ -82,17 +82,6 @@ Run the command `python3 -m mp2i` on Linux or `py -m mp2i` on Windows.
 
 - ### Using Docker
 
-To run the application in production mode, please execute the following command:
-```sh
-docker-compose up
-```
-
-If you want to use the development environment, with exposed ports for PostgreSQL and an administration website for this database, execute
-```sh
-docker-compose -f docker-compose.dev.yaml up
-```
-
-In any case, if you want to rebuild images following code modifications, add the flag `--build` at the end of the command line, for instance:
 ```sh
 docker-compose up --build
 ```

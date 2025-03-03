@@ -6,6 +6,8 @@ services:
       - POSTGRES_DB=MP2I
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
+#    ports:
+#      - "2345:5432"
 
   bot:
     container_name: MP2I_Bot
@@ -17,7 +19,7 @@ services:
     env_file:
       - .env
     environment:
-      ENVIRONMENT: production
+      ENVIRONMENT: development
       DATABASE_URL: postgresql+psycopg2://root:root@postgres:5432/MP2I
     depends_on:
       - postgres
