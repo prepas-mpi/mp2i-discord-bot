@@ -34,16 +34,6 @@ class Commands(Cog):
         help_status = "/help"
         await self.bot.change_presence(activity=discord.Game(help_status))
 
-    @hybrid_command(name="resetstatus")
-    @guild_only()
-    @has_permissions(administrator=True)
-    async def reset_status(self, ctx) -> None:
-        """
-        Réinitialise le status du bot à /help.
-        """
-        await self.set_default_status()
-        await ctx.reply("Status réinitialisé à `/help`.", ephemeral=True)
-
     @hybrid_command(name="clear")
     @guild_only()
     @has_permissions(manage_messages=True)
