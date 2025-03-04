@@ -23,6 +23,22 @@ class Sanction(Cog):
         self.bot = bot
         self.users = {}
 
+    def __register_sanction_in_db__(self, staff: int, member: int,
+                                  guild: int, date, typ: str,
+                                  duration: Optional[int],
+                                  reason: Optional[str]):
+        database.execute(
+            insert(SanctionModel).values(
+                by_id=staff,
+                to_id=member,
+                guild_id=guild,
+                date=date,
+                type=typ,
+                duration=duration,
+                reason=reason
+            )
+        )
+
     @hybrid_command(name="warn")
     @guild_only()
     @has_permissions(manage_messages=True)
@@ -40,15 +56,14 @@ class Sanction(Cog):
         reason : str
             La raison de l'avertissement.
         """
-        database.execute(
-            insert(SanctionModel).values(
-                by_id=ctx.author.id,
-                to_id=member.id,
-                guild_id=ctx.guild.id,
-                date=datetime.now(),
-                type="warn",
-                reason=reason,
-            )
+        self.__register_sanction_in_db__(
+            ctx.author.id,
+            member.id,
+            ctx.guild.id,
+            datetime.now(),
+            "warn",
+            None,
+            reason
         )
         send_dm = dm == "oui"
         message_sent = False
@@ -227,7 +242,8 @@ class Sanction(Cog):
                 """
                 embed.add_field(name="Utilisateur", value=f"<@{user.id}>")
                 embed.add_field(name="Staff", value=staff.mention)
-                embed.add_field(name="Raison", value=reason, inline=False)
+                if reason:
+                    embed.add_field(name="Raison", value=reason, inline=False)
             await handle_log(f"{user_name} a été banni", 0xFF0000, embed_fields)
 
         async def handle_log_unban(user, staff):
@@ -324,25 +340,43 @@ class Sanction(Cog):
                 embed.add_field(name="Staff", value=staff.mention)
             await handle_log(f"{user.name} n'est plus TO", 0xFA9C1B, embed_fields)
 
+        def insert_in_database(typ, duration):
+            try:
+                self.__register_sanction_in_db__(
+                    entry.user.id,
+                    entry.target.id,
+                    entry.guild.id,
+                    datetime.now(),
+                    typ,
+                    duration,entry.reason
+                )
+            except Exception:
+                logger.warning(f"{entry.user.id} {typ} {entry.target.id} but member not in database.")
+
         if entry.action == AuditLogAction.ban:
+            insert_in_database("ban", None)
             await handle_log_ban(entry.target, entry.user, entry.reason)
 
         elif entry.action == AuditLogAction.unban:
+            insert_in_database("unban", None)
             await handle_log_unban(entry.target, entry.user)
 
         # Doit être étrangement avant la condition de TO sinon ne s'applique pas
         elif entry.action == AuditLogAction.member_update and (entry.before.timed_out_until and not entry.after.timed_out_until):
+            insert_in_database("unto", None)
             await handle_log_unto(
                 entry.target,
                 entry.user
             )
 
         elif entry.action == AuditLogAction.member_update and (not entry.before.timed_out_until and entry.after.timed_out_until or entry.before.timed_out_until and entry.before.timed_out_until < entry.after.timed_out_until):
+            end_of_sanction = entry.after.timed_out_until.timestamp()
+            insert_in_database("to", int(end_of_sanction - datetime.now()))
             await handle_log_to(
                 entry.target,
                 entry.user,
                 entry.reason,
-                int(entry.after.timed_out_until.timestamp() + 60) # +60 indique la minute qui suit, mieux vaut large que pas assez
+                int(end_of_sanction + 60)  # +60 indique la minute qui suit, mieux vaut large que pas assez 
             )
 
 

@@ -65,10 +65,11 @@ class SanctionModel(Base):
     guild_id: int = Column(BigInteger, ForeignKey("guilds.id", ondelete="CASCADE"))
     date = Column(DateTime)
     type: str = Column(String(50))
+    duration = Column(BigInteger, nullable=True)
     reason: str = Column(Text, nullable=True)
 
     def __repr__(self):
         return (
-            f"Sanction(by={self.by_id}, to={self.to_id}, type={self.type},"
-            f"description={self.description:30.30}"
+            f"Sanction(by={self.by_id}, to={self.to_id}, type={self.type}, to={duration}"
+            f"description={self.reason:30.30})"
         )
