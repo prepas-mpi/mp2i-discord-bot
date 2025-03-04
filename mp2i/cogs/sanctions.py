@@ -22,7 +22,6 @@ class Sanction(Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.users = {}
 
     def __register_sanction_in_db__(self, staff: int, member: int,
                                   guild: int, date, typ: str,
@@ -165,20 +164,6 @@ class Sanction(Cog):
             return
         await guild.sanctions_log_channel.send(message)
 
-    @Cog.listener("on_member_ban")
-    async def log_ban(self, guild, user) -> None:
-        """
-        Stocke le nom de l'utilisateur banni
-        """
-        self.users[user.id] = user.name
-
-    @Cog.listener("on_member_unban")
-    async def log_unban(self, guild, user) -> None:
-        """
-        Stocke le nom de l'utilisateur débanni
-        """
-        self.users[user.id] = user.name
-
     @Cog.listener("on_audit_log_entry_create")
     @guild_only()
     async def log_sanctions(self, entry) -> None:
@@ -223,15 +208,12 @@ class Sanction(Cog):
             Parameters
             ----------
             user : Any
-                Utilisateur cible.
+                Identifiant de l'utilisateur cible.
             staff: discord.Member
                 Utilisateur initateur de l'action.
             reason: str
                 Raison du bannissement.
             """
-            # Le nom ne peut être récupéré de `user` si la personne n'est plus sur le serveur.
-            user_name = self.users[user.id]
-            del self.users[user.id]
             def embed_fields(embed):
                 """
                 Ajoute les champs nécessaires à l'embed d'un bannissement.
@@ -245,7 +227,7 @@ class Sanction(Cog):
                 embed.add_field(name="Staff", value=staff.mention)
                 if reason:
                     embed.add_field(name="Raison", value=reason, inline=False)
-            await handle_log(f"{user_name} a été banni", 0xFF0000, embed_fields)
+            await handle_log(f"{user.name} a été banni", 0xFF0000, embed_fields)
 
         async def handle_log_unban(user, staff):
             """
@@ -258,9 +240,6 @@ class Sanction(Cog):
             staff: discord.Member
                 Utilisateur initateur de l'action.
             """
-            # Le nom ne peut être récupéré de `user` si la personne n'est plus sur le serveur.
-            user_name = self.users[user.id]
-            del self.users[user.id]
             def embed_fields(embed):
                 """
                 Ajoute les champs nécessaires à l'embed d'un débannissement.
@@ -272,7 +251,7 @@ class Sanction(Cog):
                 """
                 embed.add_field(name="Utilisateur", value=f"<@{user.id}>")
                 embed.add_field(name="Staff", value=staff.mention)
-            await handle_log(f"{user_name} a été débanni", 0xFA9C1B, embed_fields)
+            await handle_log(f"{user.name} a été débanni", 0xFA9C1B, embed_fields)
 
         async def handle_log_to(user, staff, reason, time):
             """
@@ -312,7 +291,7 @@ class Sanction(Cog):
                 else:
                     embed.add_field(name="Message Privé", value="Non envoyé")
                 embed.add_field(name="Raison", value=reason, inline=False)
-            await handle_log(f"{user} a été TO",
+            await handle_log(f"{user.name} a été TO",
                 0xFDAC5B,
                 embed_fields
                 )
@@ -341,6 +320,17 @@ class Sanction(Cog):
                 embed.add_field(name="Staff", value=staff.mention)
             await handle_log(f"{user.name} n'est plus TO", 0xFA9C1B, embed_fields)
 
+        try:
+            user = entry.target
+            entry.target.name # génère une erreur si la cible n'est pas sur le serveur
+        except Exception:
+            try:
+                user = await self.bot.fetch_user(entry.target.id)
+            except Exception:
+                logger.error(f"Failed to fetch user {entry.target.id} ! Cannot log their sanction.")
+                return
+        staff = entry.user # renommage pour meilleure compréhension
+        
         def insert_in_database(typ, duration):
             try:
                 self.__register_sanction_in_db__(
@@ -352,30 +342,30 @@ class Sanction(Cog):
                     duration,entry.reason
                 )
             except Exception:
-                logger.warning(f"{entry.user.id} {typ} {entry.target.id} but member not in database.")
+                logger.warning(f"{staff.name} ({staff.id}) {typ} {user.name} ({user.id}) but member not in database.")
 
         if entry.action == AuditLogAction.ban:
             insert_in_database("ban", None)
-            await handle_log_ban(entry.target, entry.user, entry.reason)
+            await handle_log_ban(user, staff, entry.reason)
 
         elif entry.action == AuditLogAction.unban:
             insert_in_database("unban", None)
-            await handle_log_unban(entry.target, entry.user)
+            await handle_log_unban(user, staff)
 
         # Doit être étrangement avant la condition de TO sinon ne s'applique pas
         elif entry.action == AuditLogAction.member_update and (entry.before.timed_out_until and not entry.after.timed_out_until):
             insert_in_database("unto", None)
             await handle_log_unto(
-                entry.target,
-                entry.user
+                user,
+                staff
             )
 
         elif entry.action == AuditLogAction.member_update and (not entry.before.timed_out_until and entry.after.timed_out_until or entry.before.timed_out_until and entry.before.timed_out_until < entry.after.timed_out_until):
             end_of_sanction = entry.after.timed_out_until.timestamp()
-            insert_in_database("to", int(end_of_sanction - datetime.now()))
+            insert_in_database("to", int(end_of_sanction - datetime.now().timestamp()))
             await handle_log_to(
-                entry.target,
-                entry.user,
+                user,
+                staff,
                 entry.reason,
                 int(end_of_sanction + 60)  # +60 indique la minute qui suit, mieux vaut large que pas assez 
             )
