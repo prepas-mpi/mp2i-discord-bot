@@ -4,12 +4,13 @@ from typing import Optional
 
 import discord
 from discord import AuditLogAction
-from discord.ext.commands import Cog, hybrid_command, guild_only, has_permissions
+from discord.ext.commands import Cog, hybrid_command, guild_only
 from sqlalchemy import insert, select, delete
 
 from mp2i.utils import database
 from mp2i.models import SanctionModel
 from mp2i.wrappers.guild import GuildWrapper
+from mp2i.utils.discord import has_any_role
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +42,7 @@ class Sanction(Cog):
 
     @hybrid_command(name="warn")
     @guild_only()
-    @has_permissions(manage_messages=True)
+    @has_any_role("Modérateur", "Administrateur")
     async def warn(self, ctx, member: discord.Member, dm: str, *,
                    reason: str) -> None:  # fmt: skip
         """
@@ -101,7 +102,7 @@ class Sanction(Cog):
 
     @hybrid_command(name="warnlist")
     @guild_only()
-    @has_permissions(manage_messages=True)
+    @has_any_role("Modérateur", "Administrateur")
     async def warnlist(self, ctx, member: Optional[discord.Member]) -> None:
         """
         Liste les sanctions reçues par un membre.
@@ -146,7 +147,7 @@ class Sanction(Cog):
 
     @hybrid_command(name="unwarn")
     @guild_only()
-    @has_permissions(manage_messages=True)
+    @has_any_role("Modérateur", "Administrateur")
     async def unwarn(self, ctx, id: int) -> None:
         """
         Supprime un avertissement.

@@ -27,10 +27,18 @@ class ErrorHandler(Cog):
             )
             await ctx.reply("Votre argument est invalide.")
 
-        elif hasattr(error, "handled"):
+        elif ctx.command.has_error_handler():
             logger.debug(f"Local error handler for {ctx.command} has been called")
+        
+        elif isinstance(error, errors.MissingAnyRole):
+            logger.debug(f"{error}")
+            await ctx.reply("Vous n'avez pas la permission d'utiliser cette commande.")
 
-        else:
+        elif isinstance(error, errors.NoPrivateMessage):
+            logger.debug(f"{error}")
+            await ctx.reply("Cette commande ne peut pas être utilisée en message privé.")
+
+        elif not isinstance(error, errors.CommandNotFound):
             logger.error(f"{error}")
             await ctx.reply(
                 "Une erreur interne est survenue, veuillez contacter un Administrateur."

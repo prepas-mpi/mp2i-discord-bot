@@ -4,12 +4,19 @@ from typing import Optional
 from operator import attrgetter
 
 import discord
-from discord.ext.commands import Cog, hybrid_command, guild_only, has_permissions
+from discord.ext.commands import Cog, Range
+from discord.ext.commands import (
+    hybrid_command,
+    guild_only,
+    has_permissions,
+    errors,
+)
+
 
 from mp2i.wrappers.guild import GuildWrapper
 from mp2i.wrappers.member import MemberWrapper
 from mp2i.utils import youtube
-from mp2i.utils.discord import defer
+from mp2i.utils.discord import defer, has_any_role
 
 logger = logging.getLogger(__name__)
 
@@ -65,21 +72,30 @@ class Commands(Cog):
     @hybrid_command(name="clear")
     @guild_only()
     @has_permissions(manage_messages=True)
-    async def clear(self, ctx, number: int = 1) -> None:
+    async def clear(self, ctx, number: Range[int, 1, 100]) -> None:
         """
-        Supprime les n derniers messages du salon
+        Supprime les n derniers messages du salon.
 
         Parameters
         ----------
         number : int
             Nombre de messages à supprimer.
         """
-        await ctx.channel.purge(limit=int(number))
+        await ctx.channel.purge(limit=int(number) + (ctx.prefix != "/"))
         await ctx.reply(f"{number} messages ont bien été supprimés.", ephemeral=True)
+
+    @clear.error
+    async def clear_error(self, ctx, error) -> None:
+        """
+        Local error handler for clear command.
+        """
+        if isinstance(error, errors.RangeError):
+            msg = f"Le nombre de messages doit être compris entre 1 et {error.maximum}."
+        await ctx.reply(msg, ephemeral=True)
 
     @hybrid_command(name="say")
     @guild_only()
-    @has_permissions(manage_messages=True)
+    @has_any_role("Modérateur", "Administrateur")
     async def say(self, ctx, channel: discord.TextChannel, *, message: str) -> None:
         """
         Envoie un message dans un salon.
@@ -184,10 +200,9 @@ class Commands(Cog):
         """
         if rmax < 0 or rmax > LEADERBOARD_RANK_MAX:
             message = f"rmax doit être compris entre 0 et {LEADERBOARD_RANK_MAX}"
-            await ctx.reply(message, ephemeral=True)
-            return
+            return await ctx.reply(message, ephemeral=True)
 
-        members = [m for m in map(MemberWrapper, ctx.guild.members) if m.exists() and not m.bot]
+        members = [MemberWrapper(m) for m in ctx.guild.members if not m.bot]
         members.sort(key=attrgetter("messages_count"), reverse=True)
 
         author = MemberWrapper(ctx.author)
@@ -204,19 +219,6 @@ class Commands(Cog):
 
         embed = discord.Embed(colour=0x2BFAFA, title=title, description=content)
         await ctx.send(embed=embed)
-
-    @Cog.listener("on_message")
-    async def unbinarize(self, msg: discord.Message):
-        """
-        Vérifie si le message est un texte binaire et le convertit en ASCII.
-        """
-        if not re.fullmatch(r"([01]{8}\s?)+", msg.content):
-            return
-        await msg.channel.send(
-            f"{msg.author.mention}: "
-            + "".join(chr(int(b, 2)) for b in re.findall("[01]{8}", msg.content))
-        )
-
 
 async def setup(bot) -> None:
     await bot.add_cog(Commands(bot))
