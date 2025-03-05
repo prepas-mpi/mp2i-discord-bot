@@ -83,5 +83,5 @@ Run the command `python3 -m mp2i` on Linux or `py -m mp2i` on Windows.
 - ### Using Docker
 
 ```sh
-docker-compose up --build
+docker compose up --build
 ```
