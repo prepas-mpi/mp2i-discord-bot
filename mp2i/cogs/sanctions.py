@@ -1,10 +1,12 @@
 import logging
 from datetime import datetime
 from typing import Optional
+from math import ceil
 
 import discord
 from discord import AuditLogAction
 from discord.ext.commands import Cog, hybrid_command, guild_only
+from discord.app_commands import Choice, choices
 from sqlalchemy import insert, select, delete
 
 from mp2i.utils import database
@@ -99,15 +101,27 @@ class Sanction(Cog):
         await guild.sanctions_log_channel.send(embed=embed)
 
 
-    @hybrid_command(name="warnlist")
+    @hybrid_command(name="sanctionslist")
     @guild_only()
     @has_any_role("Modérateur", "Administrateur")
-    async def warnlist(self, ctx, member: Optional[discord.Member]) -> None:
+    @choices(
+        typ=[
+            Choice(name="Tout type", value="*"),
+            Choice(name="Avertissement", value="warn"),
+            Choice(name="Bâillonnage", value="to"),
+            Choice(name="Bannissement", value="ban"),
+            Choice(name="Débâillonnage", value="unto"),
+            Choice(name="Débannissement", value="unban")
+        ]
+    )
+    async def sanctionslist(self, ctx, typ: str, member: Optional[discord.Member]) -> None:
         """
         Liste les sanctions reçues par un membre.
 
         Parameters
         ----------
+        typ : str
+            Type des sanctions à afficher
         member : Optional[discord.Member]
             Le membre dont on veut lister les sanctions.
         """
@@ -115,23 +129,29 @@ class Sanction(Cog):
             request = select(SanctionModel).where(
                 SanctionModel.to_id == member.id,
                 SanctionModel.guild_id == ctx.guild.id,
-                SanctionModel.type == "warn",
+                True if typ == "*" else SanctionModel.type == typ
             )
-            title = f"Liste des avertissements de {member.name}"
+            title = f"Liste des sanctions de {member.name}"
         else:
             request = select(SanctionModel).where(
-                SanctionModel.guild_id == ctx.guild.id, SanctionModel.type == "warn"
+                SanctionModel.guild_id == ctx.guild.id,
+                True if typ == "*" else SanctionModel.type == typ
             )
-            title = "Liste des avertissements du serveur"
+            title = "Liste des sanctions du serveur"
 
         sanctions = database.execute(request).scalars().all()
-        content = f"**Nombre d'avertissements :** {len(sanctions)}\n\n"
+        content = f"**Nombre de sanctions :** {len(sanctions)}\n\n"
 
         for sanction in sanctions:
             content += f"**{sanction.id}** ━ Le {sanction.date:%d/%m/%Y à %H:%M}\n"
+            content += f"> **Type :** {sanction.type}\n"
             if not member:
                 to = ctx.guild.get_member(sanction.to_id)
                 content += f"> **Membre :** {to.mention}\n"
+
+            duration = sanction.get_duration
+            if duration:
+                content += f"> **Temps :** {duration}\n"
 
             by = ctx.guild.get_member(sanction.by_id)
             content += f"> **Modérateur :** {by.mention}\n"
@@ -362,7 +382,7 @@ class Sanction(Cog):
 
         elif entry.action == AuditLogAction.member_update and (not entry.before.timed_out_until and entry.after.timed_out_until or entry.before.timed_out_until and entry.before.timed_out_until < entry.after.timed_out_until):
             end_of_sanction = entry.after.timed_out_until.timestamp()
-            insert_in_database("to", int(end_of_sanction - datetime.now().timestamp()))
+            insert_in_database("to", int(ceil(end_of_sanction - datetime.now().timestamp())))
             await handle_log_to(
                 user,
                 staff,
