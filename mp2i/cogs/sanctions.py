@@ -77,7 +77,7 @@ class Sanction(Cog):
                     f">>> {reason}"
                 )
                 message_sent = True
-            except:
+            except discord.Forbidden:
                 message_sent = False
 
         embed = discord.Embed(
