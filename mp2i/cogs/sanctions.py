@@ -101,7 +101,7 @@ class Sanction(Cog):
         await guild.sanctions_log_channel.send(embed=embed)
 
 
-    @hybrid_command(name="sanctionslist")
+    @hybrid_command(name="sanctionlist")
     @guild_only()
     @has_any_role("Modérateur", "Administrateur")
     @choices(
@@ -114,7 +114,7 @@ class Sanction(Cog):
             Choice(name="Débannissement", value="unban")
         ]
     )
-    async def sanctionslist(self, ctx, typ: str, member: Optional[discord.Member]) -> None:
+    async def sanctionlist(self, ctx, typ: str, member: Optional[discord.Member]) -> None:
         """
         Liste les sanctions reçues par un membre.
 
