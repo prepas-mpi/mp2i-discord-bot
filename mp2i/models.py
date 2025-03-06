@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy import Integer, BigInteger, Column, DateTime, String, Text, ForeignKey
 from sqlalchemy.schema import PrimaryKeyConstraint, ForeignKeyConstraint
@@ -72,6 +74,21 @@ class SanctionModel(Base):
 
     def __repr__(self):
         return (
-            f"Sanction(by={self.by_id}, to={self.to_id}, type={self.type}, to={duration}"
+            f"Sanction(by={self.by_id}, to={self.to_id}, type={self.type}, to={self.duration}"
             f"description={self.reason:30.30})"
         )
+
+    @property
+    def get_duration(self) -> Optional[str]:
+        duration = self.duration
+        if not duration:
+            return None
+        seconds = duration % 60
+        minutes = int(duration / 60) % 60
+        hours = int(duration / 3600) % 24
+        days = int(duration / 3600 / 24)
+        out = f"{days} jours " if days > 0 else ""
+        out += f"{hours} heures " if hours > 0 else ""
+        out += f"{minutes} minutes " if minutes > 0 else ""
+        out += f"{seconds} seconds " if seconds > 0 else ""
+        return out[:-1]
