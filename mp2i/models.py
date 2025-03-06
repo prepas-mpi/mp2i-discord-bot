@@ -90,5 +90,5 @@ class SanctionModel(Base):
         out = f"{days} jours " if days > 0 else ""
         out += f"{hours} heures " if hours > 0 else ""
         out += f"{minutes} minutes " if minutes > 0 else ""
-        out += f"{seconds} seconds " if seconds > 0 else ""
+        out += f"{seconds} secondes " if seconds > 0 else ""
         return out[:-1]
