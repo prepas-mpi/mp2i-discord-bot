@@ -212,27 +212,6 @@ class Sanction(Cog):
         if not guild.sanctions_log_channel:
             return
 
-        async def handle_log(title, colour, fields):
-            """
-            Envoie un embed dans le salon de logs des sanctions.
-
-            Parameters
-            ----------
-            title : str
-                Titre de l'embed.
-            colour: int
-                Couleur de l'embed.
-            fields: Callable[discord.Embed, None]
-                Fonction permettant d'ajouter des `fields` à l'embed.
-            """
-            embed = discord.Embed(
-                title=title,
-                colour=colour,
-                timestamp=datetime.now(),
-            )
-            fields(embed)
-            await guild.sanctions_log_channel.send(embed=embed)
-
         async def handle_log_ban(user, staff, reason):
             """
             Logue le banissement d'un utilisateur dans le salon des logs de sanctions.
@@ -247,21 +226,18 @@ class Sanction(Cog):
                 Raison du bannissement.
             """
 
-            def embed_fields(embed):
-                """
-                Ajoute les champs nécessaires à l'embed d'un bannissement.
+            embed = discord.Embed(
+                title=f"{user.name} a été banni",
+                colour=0xFF0000,
+                timestamp=datetime.now(),
+            )
+            embed.add_field(name="Utilisateur", value=f"<@{user.id}>")
+            embed.add_field(name="Staff", value=staff.mention)
+            if reason:
+                embed.add_field(name="Raison", value=reason, inline=False)
 
-                Parameters
-                ----------
-                embed : discord.Embed
-                    Embed à modifier.
-                """
-                embed.add_field(name="Utilisateur", value=f"<@{user.id}>")
-                embed.add_field(name="Staff", value=staff.mention)
-                if reason:
-                    embed.add_field(name="Raison", value=reason, inline=False)
+            await guild.sanctions_log_channel.send(embed=embed)
 
-            await handle_log(f"{user.name} a été banni", 0xFF0000, embed_fields)
 
         async def handle_log_unban(user, staff):
             """
@@ -275,19 +251,15 @@ class Sanction(Cog):
                 Utilisateur initateur de l'action.
             """
 
-            def embed_fields(embed):
-                """
-                Ajoute les champs nécessaires à l'embed d'un débannissement.
+            embed = discord.Embed(
+                title=f"{user.name} a été débanni",
+                colour=0xFA9C1B,
+                timestamp=datetime.now(),
+            )
+            embed.add_field(name="Utilisateur", value=f"<@{user.id}>")
+            embed.add_field(name="Staff", value=staff.mention)
 
-                Parameters
-                ----------
-                embed : discord.Embed
-                    Embed à modifier.
-                """
-                embed.add_field(name="Utilisateur", value=f"<@{user.id}>")
-                embed.add_field(name="Staff", value=staff.mention)
-
-            await handle_log(f"{user.name} a été débanni", 0xFA9C1B, embed_fields)
+            await guild.sanctions_log_channel.send(embed=embed)
 
         async def handle_log_to(user, staff, reason, time):
             """
@@ -313,25 +285,24 @@ class Sanction(Cog):
             except:
                 dm_sent = False
 
-            def embed_fields(embed):
-                """
-                Ajoute les champs nécessaires à l'embed d'un time out.
+            embed = discord.Embed(
+                title=f"{user.name} a été TO",
+                colour=0xFDAC5B,
+                timestamp=datetime.now(),
+            )
+            embed.add_field(name="Utilisateur", value=f"<@{user.id}>")
+            embed.add_field(name="Staff", value=staff.mention)
+            embed.add_field(
+                name="Timestamp", value=f"<t:{time}:F>", inline=False
+            )
+            embed.add_field(
+                name="Message Privé",
+                value="Envoyé" if dm_sent else "Non envoyé"
+            )
+            embed.add_field(name="Raison", value=reason, inline=False)
 
-                Parameters
-                ----------
-                embed : discord.Embed
-                    Embed à modifier.
-                """
-                embed.add_field(name="Utilisateur", value=f"<@{user.id}>")
-                embed.add_field(name="Staff", value=staff.mention)
-                embed.add_field(name="Timestamp", value=f"<t:{time}:F>", inline=False)
-                if dm_sent:
-                    embed.add_field(name="Message Privé", value="Envoyé")
-                else:
-                    embed.add_field(name="Message Privé", value="Non envoyé")
-                embed.add_field(name="Raison", value=reason, inline=False)
+            await guild.sanctions_log_channel.send(embed=embed)
 
-            await handle_log(f"{user.name} a été TO", 0xFDAC5B, embed_fields)
 
         async def handle_log_unto(user, staff):
             """
@@ -345,19 +316,15 @@ class Sanction(Cog):
                 Utilisateur initateur de l'action.
             """
 
-            def embed_fields(embed):
-                """
-                Ajoute les champs nécessaires à l'embed de la révocation d'un time out.
+            embed = discord.Embed(
+                title=f"{user.name} n'est plus TO",
+                colour=0xFA9C1B,
+                timestamp=datetime.now(),
+            )
+            embed.add_field(name="Utilisateur", value=f"<@{user.id}>")
+            embed.add_field(name="Staff", value=staff.mention)
 
-                Parameters
-                ----------
-                embed : discord.Embed
-                    Embed à modifier.
-                """
-                embed.add_field(name="Utilisateur", value=f"<@{user.id}>")
-                embed.add_field(name="Staff", value=staff.mention)
-
-            await handle_log(f"{user.name} n'est plus TO", 0xFA9C1B, embed_fields)
+            await guild.sanctions_log_channel.send(embed=embed)
 
         try:
             user = entry.target
