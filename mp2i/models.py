@@ -74,8 +74,8 @@ class SanctionModel(Base):
 
     def __repr__(self):
         return (
-            f"Sanction(by={self.by_id}, to={self.to_id}, type={self.type}, to={self.duration}"
-            f"description={self.reason:30.30})"
+            f"Sanction(by={self.by_id}, to={self.to_id}, type={self.type}"
+            f"duration={self.duration}, description={self.reason:30.30})"
         )
 
     @property
