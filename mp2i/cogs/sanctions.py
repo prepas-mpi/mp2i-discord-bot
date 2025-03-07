@@ -282,7 +282,7 @@ class Sanction(Cog):
                     f"Vous avez été TO jusqu'à <t:{time}:F> pour la raison : \n>>> {reason}"
                 )
                 dm_sent = True
-            except:
+            except discord.Forbidden:
                 dm_sent = False
 
             embed = discord.Embed(
