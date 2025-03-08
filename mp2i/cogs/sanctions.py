@@ -325,14 +325,14 @@ class Sanction(Cog):
             embed.add_field(name="Staff", value=staff.mention)
 
             await guild.sanctions_log_channel.send(embed=embed)
-
+            
         try:
             user = entry.target
             entry.target.name  # génère une erreur si la cible n'est pas sur le serveur
-        except Exception:
+        except Exception:  # pas la peine de cibler l'erreur.
             try:
                 user = await self.bot.fetch_user(entry.target.id)
-            except Exception:
+            except discord.NotFound:
                 logger.error(
                     f"Failed to fetch user {entry.target.id} ! Cannot log their sanction."
                 )
@@ -340,20 +340,18 @@ class Sanction(Cog):
         staff = entry.user  # renommage pour meilleure compréhension
 
         def insert_in_database(type_, duration):
-            try:
-                self.__register_sanction_in_database(
-                    staff=entry.user.id,
-                    member=entry.target.id,
-                    guild=entry.guild.id,
-                    date=datetime.now(),
-                    type_=type_,
-                    duration=duration,
-                    reason=entry.reason,
-                )
-            except Exception:
-                logger.warning(
-                    f"{staff.name} ({staff.id}) {type_} {user.name} ({user.id}) but member not in database."
-                )
+            self.__register_sanction_in_database(
+                staff=entry.user.id,
+                member=entry.target.id,
+                guild=entry.guild.id,
+                date=datetime.now(),
+                type_=type_,
+                duration=duration,
+                reason=entry.reason
+            )
+            logger.info(
+                f"{staff.name} ({staff.id}) {type_} {user.name} ({user.id})."
+            )
 
         if entry.action == AuditLogAction.ban:
             insert_in_database("ban", None)
