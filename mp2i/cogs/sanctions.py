@@ -50,7 +50,7 @@ class Sanction(Cog):
     @hybrid_command(name="warn")
     @guild_only()
     @has_any_role("Modérateur", "Administrateur")
-    async def warn(self, ctx, member: discord.Member, dm: str, *,
+    async def warn(self, ctx, member: discord.Member, send_dm: bool, *,
                    reason: str) -> None:  # fmt: skip
         """
         Avertit un utilisateur pour une raison donnée.
@@ -59,7 +59,7 @@ class Sanction(Cog):
         ----------
         member : discord.Member
             L'utilisateur à avertir.
-        dm : str
+        send_dm : str
             Si oui, l'utilisateur sera averti par message privé.
         reason : str
             La raison de l'avertissement.
@@ -73,7 +73,6 @@ class Sanction(Cog):
             duration=None,
             reason=reason,
         )
-        send_dm = dm == "oui"
         message_sent = False
         if send_dm:
             # Au cas où l'utilisateur visé a fermé ses messages privés.
