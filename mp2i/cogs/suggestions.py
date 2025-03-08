@@ -3,7 +3,7 @@ from datetime import datetime
 
 import discord
 from discord import TextStyle
-from discord.ext.commands import Cog, GroupCog
+from discord.ext.commands import Cog, GroupCog, guild_only, hybrid_command
 from discord.app_commands import Choice, choices, command
 from discord.ui import Modal, TextInput
 from sqlalchemy import delete, insert, select, update
@@ -16,6 +16,7 @@ from mp2i.utils.discord import defer, has_any_role
 
 logger = logging.getLogger(__name__)
 
+@guild_only()
 class Suggestion(GroupCog, group_name="suggestions", description="Gestion des suggestions."):
     """
     Offers commands to allow members to propose suggestions and interact with them
@@ -41,7 +42,6 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
             title="Fonctionnement des suggestions",
             description=content,
             colour=0xFF66FF,
-            timestamp=datetime.now(),
         )
         if guild.icon:
             embed.set_thumbnail(url=guild.icon.url)
@@ -162,16 +162,16 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
             .where(SuggestionModel.message_id == message.id)
         )
 
-    @command(name="create_proposal")
+    @hybrid_command(name="create_proposal")
     @has_any_role("Administrateur")
-    async def create(self, ctx: discord.Interaction) -> None:
+    async def create(self, ctx, channel: discord.TextChannel) -> None:
         """
         Send the proposal suggestion message
         """
-        await self.__send_suggestions_rules(ctx.channel)
-        await ctx.response.send_message("Le salon des suggestions a été créé.", ephemeral=True)
+        await self.__send_suggestions_rules(channel)
+        await ctx.send("Le salon des suggestions a été créé.", ephemeral=True)
 
-    @command(name="list")
+    @hybrid_command(name="list")
     @choices(
         state=[
             Choice(name="En cours", value="open"),
@@ -200,7 +200,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         ).scalars().all()
 
         if not suggestions:
-            await ctx.response.send_message("Aucune suggestion trouvée pour cet état.", ephemeral=True)
+            await ctx.send("Aucune suggestion trouvée pour cet état.", ephemeral=True)
             return
 
         if state == "accepted":
@@ -219,7 +219,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
                 value=f"https://discord.com/channels/{ctx.guild.id}/{suggestion.channel_id}/{suggestion.message_id}",
                 inline=False,
             )
-        await ctx.response.send_message(embed=embed)
+        await ctx.send(embed=embed)
 
     class SuggestionsModal(Modal, title='Soumettre une suggestion'):
         def __init__(self, suggestion):
