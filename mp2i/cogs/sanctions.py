@@ -168,7 +168,8 @@ class Sanction(Cog):
             by = ctx.guild.get_member(sanction.by_id)
             content += f"> **Modérateur :** {by.mention}\n"
             if sanction.reason:
-                content += f"> **Raison :** {sanction.reason}\n"
+                reason = sanction.reason.replace("\n", "\n> ")
+                content += f"> **Raison :** {reason}\n"
             content += "\n"
 
         embed = discord.Embed(
