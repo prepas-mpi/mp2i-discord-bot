@@ -31,7 +31,7 @@ class Sanction(Cog):
         member: int,
         guild: int,
         date,
-        type_: str,
+        type: str,
         duration: Optional[int],
         reason: Optional[str],
     ):
@@ -41,7 +41,7 @@ class Sanction(Cog):
                 to_id=member,
                 guild_id=guild,
                 date=date,
-                type=type_,
+                type=type,
                 duration=duration,
                 reason=reason,
             )
@@ -69,7 +69,7 @@ class Sanction(Cog):
             member=member.id,
             guild=ctx.guild.id,
             date=datetime.now(),
-            type_="warn",
+            type="warn",
             duration=None,
             reason=reason,
         )
@@ -116,7 +116,7 @@ class Sanction(Cog):
     @guild_only()
     @has_any_role("Modérateur", "Administrateur")
     @choices(
-        type_=[
+        type=[
             Choice(name="Tout type", value="*"),
             Choice(name="Avertissement", value="warn"),
             Choice(name="Bâillonnage", value="to"),
@@ -126,14 +126,14 @@ class Sanction(Cog):
         ]
     )
     async def sanction_list(
-        self, ctx, type_: str, member: Optional[discord.Member]
+        self, ctx, type: str, member: Optional[discord.Member]
     ) -> None:
         """
         Liste les sanctions reçues par un membre.
 
         Parameters
         ----------
-        type_ : str
+        type : str
             Type des sanctions à afficher
         member : Optional[discord.Member]
             Le membre dont on veut lister les sanctions.
@@ -142,13 +142,13 @@ class Sanction(Cog):
             request = select(SanctionModel).where(
                 SanctionModel.to_id == member.id,
                 SanctionModel.guild_id == ctx.guild.id,
-                True if type_ == "*" else SanctionModel.type == type_,
+                True if type == "*" else SanctionModel.type == type,
             )
             title = f"Liste des sanctions de {member.name}"
         else:
             request = select(SanctionModel).where(
                 SanctionModel.guild_id == ctx.guild.id,
-                True if type_ == "*" else SanctionModel.type == type_,
+                True if type == "*" else SanctionModel.type == type,
             )
             title = "Liste des sanctions du serveur"
 
@@ -344,18 +344,18 @@ class Sanction(Cog):
                 return
         staff = entry.user  # renommage pour meilleure compréhension
 
-        def insert_in_database(type_, duration):
+        def insert_in_database(type, duration):
             self.__register_sanction_in_database(
                 staff=entry.user.id,
                 member=entry.target.id,
                 guild=entry.guild.id,
                 date=datetime.now(),
-                type_=type_,
+                type=type,
                 duration=duration,
                 reason=entry.reason
             )
             logger.info(
-                f"{staff.name} ({staff.id}) {type_} {user.name} ({user.id})."
+                f"{staff.name} ({staff.id}) {type} {user.name} ({user.id})."
             )
 
         if entry.action == AuditLogAction.ban:
