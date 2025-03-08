@@ -119,9 +119,9 @@ class Sanction(Cog):
         type=[
             Choice(name="Tout type", value="*"),
             Choice(name="Avertissement", value="warn"),
-            Choice(name="Bâillonnage", value="to"),
+            Choice(name="Exclusion temporaire", value="to"),
             Choice(name="Bannissement", value="ban"),
-            Choice(name="Débâillonnage", value="unto"),
+            Choice(name="Réintégration", value="unto"),
             Choice(name="Débannissement", value="unban"),
         ]
     )
