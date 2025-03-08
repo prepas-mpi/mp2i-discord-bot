@@ -2,6 +2,7 @@ import logging
 import os
 
 import discord
+import humanize
 from discord.ext import commands
 
 from mp2i.utils import database, resolver
@@ -21,6 +22,7 @@ async def run(token=None) -> None:
     database.test_connection()
 
     # Create a bot instance and activate all intents (more access to members infos)
+    humanize.i18n.activate("fr_FR")
     bot = commands.Bot(
         command_prefix="=",
         intents=discord.Intents.all(),
