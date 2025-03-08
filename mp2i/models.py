@@ -46,7 +46,7 @@ class SuggestionModel(Base):
     channel_id: int = Column(BigInteger, nullable=True)
     state: str = Column(String(50), nullable=False, default="open")
     title: str = Column(String(80))
-    description: str = Column(String(1024))
+    description: str = Column(String(3072))
 
     def __repr__(self):
         return (

@@ -240,7 +240,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
                     placeholder=
                     "Le vocable chocolatine est à préférer quand le contexte le permet, c'est-à-dire dans tous les cas !",
                     min_length=30,
-                    max_length=1024,
+                    max_length=3072,
                     style=TextStyle.paragraph,
                     required=True
                 )
