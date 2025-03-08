@@ -12,6 +12,7 @@ class GuildModel(Base):
     name: str = Column(String(50))
     members = relationship("MemberModel", cascade="all, delete")
     roles_message_id: int = Column(BigInteger, unique=True, nullable=True)
+    suggestion_message_id: int = Column(BigInteger, unique=True, nullable=True)
 
     def __repr__(self):
         return f"Guild(id={self.id}, name={self.name})"
@@ -42,12 +43,14 @@ class SuggestionModel(Base):
     guild_id: int = Column(BigInteger, ForeignKey("guilds.id", ondelete="CASCADE"))
     date = Column(DateTime, nullable=True)
     message_id: int = Column(BigInteger, nullable=True, unique=True)
+    channel_id: int = Column(BigInteger, nullable=True)
     state: str = Column(String(50), nullable=False, default="open")
-    description: str = Column(Text)
+    title: str = Column(String(80))
+    description: str = Column(String(1024))
 
     def __repr__(self):
         return (
-            f"Suggestion(author={self.author_id}, description={self.description:30.30}"
+            f"Suggestion(author={self.author_id}, title={self.title:30.30}"
         )
 
 
