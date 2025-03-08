@@ -277,13 +277,14 @@ class Sanction(Cog):
                 Timestamp de fin de sanction.
             """
             dm_sent = False
-            try:
-                await user.send(
-                    f"Vous avez été TO jusqu'à <t:{time}:F> pour la raison : \n>>> {reason}"
-                )
-                dm_sent = True
-            except discord.Forbidden:
-                dm_sent = False
+            if reason:
+                try:
+                    await user.send(
+                        f"Vous avez été TO jusqu'à <t:{time}:F> pour la raison : \n>>> {reason}"
+                    )
+                    dm_sent = True
+                except discord.Forbidden:
+                    dm_sent = False
 
             embed = discord.Embed(
                 title=f"{user.name} a été TO",
