@@ -324,7 +324,12 @@ class Sanction(Cog):
             embed.add_field(name="Utilisateur", value=f"<@{user.id}>")
             embed.add_field(name="Staff", value=staff.mention)
 
-            await guild.sanctions_log_channel.send(embed=embed)
+            await guild.sanctions_log_channel.send(embed=embe)
+
+        if not (entry.action == AuditLogAction.ban
+                or entry.action == AuditLogAction.unban
+                or entry.action == AuditLogAction.member_update):
+            return
             
         try:
             user = entry.target
