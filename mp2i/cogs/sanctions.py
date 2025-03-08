@@ -324,7 +324,7 @@ class Sanction(Cog):
             embed.add_field(name="Utilisateur", value=f"<@{user.id}>")
             embed.add_field(name="Staff", value=staff.mention)
 
-            await guild.sanctions_log_channel.send(embed=embe)
+            await guild.sanctions_log_channel.send(embed=embed)
 
         if not (entry.action == AuditLogAction.ban
                 or entry.action == AuditLogAction.unban
