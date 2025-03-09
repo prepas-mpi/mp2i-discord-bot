@@ -6,4 +6,3 @@
 
 Voter pour une suggestion donne plus de chances à celle-ci d'être acceptée !
 
-**Info** : Le vote de l'administrateur est décisif ! Un message sera envoyé dans le salon pour notifier de l'issue d'une suggestion.
