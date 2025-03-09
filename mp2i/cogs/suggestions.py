@@ -210,7 +210,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         await message.edit(embed=embed)
         database.execute(
             update(SuggestionModel)
-            .where(SuggestionModel.message_id == suggestion.id)
+            .where(SuggestionModel.id == suggestion.id)
             .values(
                 state=new_state.value,
                 handled_by=staff,
