@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Optional
 
 import discord
-from discord import TextStyle, Thread, InteractionResponse
+from discord import TextStyle, Thread, InteractionResponse, Webhook
 from discord.ext.commands import Cog, GroupCog, guild_only, hybrid_command, Context
 from discord.app_commands import Choice, choices
 from discord.ui import Modal, TextInput
@@ -141,13 +141,13 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         )
         await self.__send_suggestions_process(msg.channel)
 
-    async def finish_suggestion(self, response: InteractionResponse, thread: Thread, new_state: State, staff: int, reason: Optional[str]) -> None:
+    async def finish_suggestion(self, response: Webhook, thread: Thread, new_state: State, staff: int, reason: Optional[str]) -> None:
         """
         Close a suggestion
 
         Parameters
         ----------
-        response : InteractionResponse
+        response : Webhook
             Response to the modal
         thread: Thread
             Suggestion's thread
@@ -169,19 +169,19 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         ).scalars().all()
 
         if not suggestion:
-            await response.send_message(
+            await response.send(
                 "Aucune suggestion trouvée. Êtes-vous dans le fil d'une suggestion ?", ephemeral=True
             )
             return
 
         suggestion = suggestion[0]
         if suggestion.state != self.State.OPEN.value:
-            await response.send_message("La suggestion a déjà été traitée.", ephemeral=True)
+            await response.send("La suggestion a déjà été traitée.", ephemeral=True)
             return
 
         message: Optional[discord.Message] = await thread.parent.fetch_message(suggestion.message_id)
         if not message:
-            await response.send_message(
+            await response.send(
                 "Aucun message correspondant à cette suggestion n'a pas été trouvée.", ephemeral=True
             )
             return
@@ -218,7 +218,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
                 handled_time=datetime.now()
             )
         )
-        await response.send_message("Suggestion traitée.", ephemeral=True)
+        await response.send("Suggestion traitée.", ephemeral=True)
         await thread.edit(locked=True, archived=True)
 
 
@@ -347,14 +347,15 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
             )
 
         async def on_submit(self, interaction: discord.Interaction):
+            await interaction.response.defer()
             title = self.children[0].value
             content = self.children[1].value
             await self.suggestion.make_suggestion(title, content, self.channel, interaction.user)
-            await interaction.response.send_message("Votre suggestion a bien été envoyée !", ephemeral=True)
+            await interaction.followup.send("Votre suggestion a bien été envoyée !", ephemeral=True)
 
         async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
             logger.error(error)
-            await interaction.response.send_message("Quelque chose s'est mal passé lors de la réception !", ephemeral=True)
+            await interaction.followup.send("Quelque chose s'est mal passé lors de la réception !", ephemeral=True)
 
     class SuggestionsCloseModal(Modal, title="Fermer une suggestion"):
         """
@@ -378,12 +379,13 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
             )
 
         async def on_submit(self, interaction: discord.Interaction):
+            await interaction.response.defer()
             reason = self.children[0].value
-            await self.suggestion.finish_suggestion(interaction.response, self.thread, self.state, interaction.user.id, reason)
+            await self.suggestion.finish_suggestion(interaction.followup, self.thread, self.state, interaction.user.id, reason)
 
         async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
             logger.error(error)
-            await interaction.response.send_message("Quelque chose s'est mal passé lors de la réception !", ephemeral=True)
+            await interaction.followup.send("Quelque chose s'est mal passé lors de la réception !", ephemeral=True)
 
 async def setup(bot) -> None:
     await bot.add_cog(Suggestion(bot))
