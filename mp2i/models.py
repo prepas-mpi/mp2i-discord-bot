@@ -47,6 +47,8 @@ class SuggestionModel(Base):
     state: str = Column(String(50), nullable=False, default="open")
     title: str = Column(String(80))
     description: str = Column(String(3072))
+    handled_by: int = Column(BigInteger)
+    handled_time = Column(DateTime, nullable=True)
 
     def __repr__(self):
         return (
