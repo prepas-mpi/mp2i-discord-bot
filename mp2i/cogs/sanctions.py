@@ -59,8 +59,8 @@ class Sanction(Cog):
         ----------
         member : discord.Member
             L'utilisateur à avertir.
-        send_dm : str
-            Si oui, l'utilisateur sera averti par message privé.
+        send_dm : bool
+            Si True, l'utilisateur sera averti par message privé.
         reason : str
             La raison de l'avertissement.
         """
