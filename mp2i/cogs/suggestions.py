@@ -1,10 +1,12 @@
 import logging
 from datetime import datetime
+from enum import Enum
+from typing import Optional
 
 import discord
-from discord import TextStyle
-from discord.ext.commands import Cog, GroupCog, guild_only, hybrid_command
-from discord.app_commands import Choice, choices, command
+from discord import TextStyle, Thread, InteractionResponse
+from discord.ext.commands import Cog, GroupCog, guild_only, hybrid_command, Context
+from discord.app_commands import Choice, choices
 from discord.ui import Modal, TextInput
 from sqlalchemy import delete, insert, select, update
 
@@ -24,6 +26,16 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
 
     def __init__(self, bot):
         self.bot = bot
+
+    class State(Enum):
+        OPEN = "open"
+        ACCEPTED = "accepted"
+        DECLINED = "declined"
+        CLOSED = "closed"
+
+        @classmethod
+        def from_str(cls, value: str):
+            return cls(value)
 
     async def __send_suggestions_rules(self, channel) -> None:
         """
@@ -64,7 +76,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         """
         if not ("custom_id" in interaction.data.keys()) or interaction.data["custom_id"] != "suggestion:proposal":
             return
-        await interaction.response.send_modal(self.SuggestionsModal(self))
+        await interaction.response.send_modal(self.SuggestionsModal(self, interaction.channel))
 
     async def make_suggestion(self, title, content, channel, user) -> None:
         """
@@ -93,63 +105,97 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
             pass
         database.execute(
             insert(SuggestionModel).values(
-                author_id=msg.author.id,
+                author_id=user.id,
                 date=datetime.now(),
                 guild_id=msg.guild.id,
                 title=title,
                 description=msg.content,
                 message_id=msg.id,
                 channel_id=msg.channel.id,
-                state="open",
+                state=self.State.OPEN.value,
             )
         )
         await self.__send_suggestions_rules(msg.channel)
 
+    async def finish_suggestion(self, response: InteractionResponse, thread: Thread, new_state: State, staff: int, reason: Optional[str]) -> None:
+        """
+        Close a suggestion
 
-    async def close_suggestion(self, payload) -> None:
+        Parameters
+        ----------
+        response : Context
+            Command context
+        thread: Thread
+            Suggestion's thread
+        new_state : State
+            Suggestion's new state
+        staff: int
+            Staff member who handled the suggestion
+        reason : Optional[str]
+            Close reason to display
         """
-        Send result to all users when an admin add a reaction.
-        """
-        if payload.member.bot or str(payload.emoji) not in ("✅", "❌", "🔒"):
+        suggestion = database.execute(
+            select(SuggestionModel)
+            .where(
+                SuggestionModel.message_id == thread.id,
+                SuggestionModel.state == self.State.OPEN.value
+            )
+            .order_by(SuggestionModel.date.desc())
+            .limit(1)
+        ).scalars().all()
+
+        if not suggestion:
+            await response.send_message(
+                "Aucune suggestion trouvée. Êtes-vous dans le fil d'une suggestion ?", ephemeral=True
+            )
             return
-        try:
-            channel = self.bot.get_channel(payload.channel_id)
-            suggestion = await channel.fetch_message(payload.message_id)
-        except discord.errors.NotFound:
+
+        suggestion = suggestion[0]
+        if suggestion.state != self.State.OPEN.value:
+            await response.send_message("La suggestion a déjà été traitée.", ephemeral=True)
             return
-        if channel != GuildWrapper(channel.guild).suggestion_channel:
+
+        message: Optional[discord.Message] = await thread.parent.fetch_message(suggestion.message_id)
+        if not message:
+            await response.send_message(
+                "Aucun message correspondant à cette suggestion n'a pas été trouvée.", ephemeral=True
+            )
             return
-        if not payload.member.guild_permissions.administrator:
-            return  # only administrator can close a suggestion
-        accept = discord.utils.get(suggestion.reactions, emoji="✅")
-        decline = discord.utils.get(suggestion.reactions, emoji="❌")
-        close = discord.utils.get(suggestion.reactions, emoji="🔒")
-        citation = (
-            "\n> ".join(suggestion.content.split("\n"))
-            + f"\n\n✅: {accept.count-1} vote(s), ❌: {decline.count-1} vote(s)"
-        ) 
-        accepted = str(payload.emoji) == accept.emoji
-        declined = str(payload.emoji) == decline.emoji
+        content = f"<@{suggestion.author_id}>, votre suggestion a été "
+        accept = discord.utils.get(message.reactions, emoji="✅").count - 1
+        decline = discord.utils.get(message.reactions, emoji="❌").count - 1
+        embed = message.embeds[0]
+        embed.timestamp = datetime.now()
+        if new_state == self.State.ACCEPTED:
+            embed.colour = 0x1FC622
+            embed.set_footer(text="✅ Suggestion acceptée")
+            content += "acceptée."
+        elif new_state == self.State.DECLINED:
+            embed.colour = 0xFF6B60
+            embed.set_footer(text="❌ Suggestion refusée")
+            content += "refusée."
+        elif new_state == self.State.CLOSED:
+            embed.colour = 0xA2D2FF
+            embed.set_footer(text="📦 Suggestion clôturée")
+            content += "clôturée."
+        embed.description = f"{embed.description}\n\n🗳 **Votes**\n{accept} ✅ • {decline} ❌"
+        if reason:
+            embed.description = f"{embed.description}\n\n\uD83D\uDCDD **Réponse de l'équipe**\n{reason}"
+            content += f" Vous retrouverez la raison de cette décision dans le message suivant : {suggestion.to_url()}."
+        await thread.send(content)
+        await message.edit(embed=embed)
         database.execute(
             update(SuggestionModel)
             .where(SuggestionModel.message_id == suggestion.id)
             .values(
-                state="accepted" if accepted else "declined" if declined else "closed",
-                date=datetime.now()
+                state=new_state.value,
+                handled_by=staff,
+                handled_time=datetime.now()
             )
         )
-        if accepted:
-            embed = discord.Embed(colour=0x77B255, title=f"Suggestion acceptée", description=f"> {citation}\n_**Note**: Il faut parfois attendre plusieurs jours avant qu'elle soit effective_")
-        elif declined:
-            embed = discord.Embed(colour=0xDD2E44, title=f"Suggestion refusée", description=f"> {citation}")
-        else:
-            embed = discord.Embed(colour=0xA9A6A7, title=f"Suggestion fermée", description=f"> {citation}")
-        file = discord.File(STATIC_DIR / "img/alert.png")
-        embed.set_thumbnail(url="attachment://alert.png")
-        embed.set_author(name=suggestion.author.name)
+        await response.send_message("Suggestion traitée.", ephemeral=True)
+        await thread.edit(locked=True, archived=True)
 
-        await channel.send(file=file, embed=embed)
-        await suggestion.delete()
 
     @Cog.listener("on_message_delete")
     @has_any_role("Administrateur", "Modérateur")
@@ -171,13 +217,33 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         await self.__send_suggestions_rules(channel)
         await ctx.send("Le salon des suggestions a été créé.", ephemeral=True)
 
+    @hybrid_command(name="close")
+    @has_any_role("Administrateur")
+    @choices(
+        state=[
+            Choice(name="Accepter", value=State.ACCEPTED.value),
+            Choice(name="Refuser", value=State.DECLINED.value),
+            Choice(name="Fermer simplement", value=State.CLOSED.value),
+        ]
+    )
+    async def close(self, ctx: Context, state: str) -> None:
+        """
+        Send a modal to close a suggestion
+        """
+        if not isinstance(ctx.channel, Thread):
+            await ctx.send("Vous devez être dans le fil d'une suggestion.", ephemeral=True)
+            return
+        thread: Thread = ctx.channel
+        await ctx.interaction.response.send_modal(self.SuggestionsCloseModal(self, thread, self.State.from_str(state)))
+
+
     @hybrid_command(name="list")
     @choices(
         state=[
-            Choice(name="En cours", value="open"),
-            Choice(name="Acceptées", value="accepted"),
-            Choice(name="Refusées", value="declined"),
-            Choice(name="Fermées", value="closed"),
+            Choice(name="En cours", value=State.OPEN.value),
+            Choice(name="Acceptées", value=State.ACCEPTED.value),
+            Choice(name="Refusées", value=State.DECLINED.value),
+            Choice(name="Fermées", value=State.CLOSED.value),
         ]
     )
     async def list(self, ctx, state: str) -> None:
@@ -198,33 +264,38 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
             .order_by(SuggestionModel.date.desc())
             .limit(10)
         ).scalars().all()
+        state = self.State.from_str(state)
 
         if not suggestions:
             await ctx.send("Aucune suggestion trouvée pour cet état.", ephemeral=True)
             return
 
-        if state == "accepted":
+        if state == self.State.ACCEPTED:
             embed = discord.Embed(title=f"Suggestions acceptées", colour=0x77B255, timestamp=datetime.now())
-        elif state == "declined":
+        elif state == self.State.DECLINED:
             embed = discord.Embed(title=f"Suggestions refusées", colour=0xDD2E44, timestamp=datetime.now())
-        elif state == "closed":
+        elif state == self.State.CLOSED:
             embed = discord.Embed(title=f"Suggestions fermées", colour=0xA9A6A7, timestamp=datetime.now())
-        else:
+        elif state == self.State.OPEN:
             embed = discord.Embed(title=f"Suggestions en cours", colour=0xA9A6A7, timestamp=datetime.now())
+        else:
+            await ctx.send("La base de données n'est plus cohérente !!", ephemeral=True)
+            return
 
         for i, suggestion in enumerate(suggestions):
 
             embed.add_field(
                 name=f"{i+1} - {suggestion.title} le {suggestion.date:%d/%m/%Y}",
-                value=f"https://discord.com/channels/{ctx.guild.id}/{suggestion.channel_id}/{suggestion.message_id}",
+                value=suggestion.to_url(),
                 inline=False,
             )
         await ctx.send(embed=embed)
 
     class SuggestionsModal(Modal, title='Soumettre une suggestion'):
-        def __init__(self, suggestion):
+        def __init__(self, suggestion, channel):
             super().__init__()
             self.suggestion = suggestion
+            self.channel = channel
             self.add_item(
                 TextInput(
                     label='Titre de votre suggestion',
@@ -249,10 +320,36 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         async def on_submit(self, interaction: discord.Interaction):
             title = self.children[0].value
             content = self.children[1].value
-            await interaction.response.send_message(f'Votre suggestion a été reçue et va être affichée.', ephemeral=True)
-            await self.suggestion.make_suggestion(title, content, interaction.channel, interaction.user)
+            await self.suggestion.make_suggestion(title, content, self.channel, interaction.user)
+            await interaction.response.send_message("Votre suggestion a bien été envoyée !", ephemeral=True)
 
         async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
+            logger.error(error)
+            await interaction.response.send_message("Quelque chose s'est mal passé lors de la réception !", ephemeral=True)
+
+    class SuggestionsCloseModal(Modal, title="Fermer une suggestion"):
+        def __init__(self, suggestion, thread, state):
+            super().__init__()
+            self.suggestion = suggestion
+            self.thread = thread
+            self.state = state
+            self.add_item(
+                TextInput(
+                    label='Raison',
+                    placeholder=
+                    "Nous trouvons que...",
+                    max_length=1000,
+                    style=TextStyle.paragraph,
+                    required=False
+                )
+            )
+
+        async def on_submit(self, interaction: discord.Interaction):
+            reason = self.children[0].value
+            await self.suggestion.finish_suggestion(interaction.response, self.thread, self.state, interaction.user.id, reason)
+
+        async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
+            logger.error(error)
             await interaction.response.send_message("Quelque chose s'est mal passé lors de la réception !", ephemeral=True)
 
 async def setup(bot) -> None:
