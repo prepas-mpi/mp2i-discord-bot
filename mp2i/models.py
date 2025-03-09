@@ -55,6 +55,9 @@ class SuggestionModel(Base):
             f"Suggestion(author={self.author_id}, title={self.title:30.30}"
         )
 
+    def to_url(self):
+        return f"https://discord.com/channels/{self.guild_id}/{self.channel_id}/{self.message_id}"
+
 
 class SanctionModel(Base):
     __tablename__ = "sanctions"
