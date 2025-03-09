@@ -208,6 +208,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
             content += f" Vous retrouverez la raison de cette décision dans le message suivant : {suggestion.to_url()}."
         await thread.send(content)
         await message.edit(embed=embed)
+        await message.clear_reactions()
         database.execute(
             update(SuggestionModel)
             .where(SuggestionModel.id == suggestion.id)
