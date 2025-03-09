@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Optional
 
 import discord
-from discord import TextStyle, Thread, InteractionResponse, Webhook
+from discord import TextStyle, Thread, Webhook
 from discord.ext.commands import Cog, GroupCog, guild_only, hybrid_command, Context
 from discord.app_commands import Choice, choices
 from discord.ui import Modal, TextInput
@@ -59,7 +59,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         with open(STATIC_DIR / "text/suggestions.md", encoding="utf-8") as f:
             content = f.read()
         embed = discord.Embed(
-            title="Fonctionnement des suggestions",
+            title="**Fonctionnement des suggestions**",
             description=content,
             colour=0xFF66FF,
         )

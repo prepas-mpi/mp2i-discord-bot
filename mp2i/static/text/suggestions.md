@@ -1,8 +1,7 @@
 **Vous pouvez proposer ici des suggestions afin d'améliorer le serveur** (nouvelles commandes, nouveaux salons, nouvelles fonctionnalités...)
 
-✅ Voter pour une suggestion
-
+✅ Soutenir une suggestion
 ❌ S'opposer à une suggestion
 
-Voter pour une suggestion donne plus de chances à celle-ci d'être acceptée !
+💡 _Vous serez informé(e) de la décision prise par l'administration au sujet de votre suggestion._
 
