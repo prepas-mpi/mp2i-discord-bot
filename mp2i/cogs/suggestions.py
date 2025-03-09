@@ -28,6 +28,9 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         self.bot = bot
 
     class State(Enum):
+        """
+        Enum for suggestion state
+        """
         OPEN = "open"
         ACCEPTED = "accepted"
         DECLINED = "declined"
@@ -37,9 +40,14 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         def from_str(cls, value: str):
             return cls(value)
 
-    async def __send_suggestions_rules(self, channel) -> None:
+    async def __send_suggestions_process(self, channel) -> None:
         """
-        Affiche le fonctionnement des suggestions.
+        Display suggestions process.
+
+        Parameters
+        ----------
+        channel : discord.TextChannel
+            Channel where the suggestions process is sent
         """
         guild = GuildWrapper(channel.guild)
         if guild.suggestion_message_id:
@@ -47,7 +55,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
                 message = await channel.fetch_message(guild.suggestion_message_id)
                 await message.delete()
             except discord.NotFound:
-                logger.warning("Suggestions message's id is set but no message was found.")
+                logger.warning("Suggestions message's id is set but no message was found maybe in another channel.")
         with open(STATIC_DIR / "text/suggestions.md", encoding="utf-8") as f:
             content = f.read()
         embed = discord.Embed(
@@ -73,6 +81,11 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
     async def send_suggestions_modal(self, interaction: discord.Interaction) -> None:
         """
         Send a modal to submit a suggestion.
+
+        Parameters
+        ----------
+        interaction : discord.Interaction
+            The interaction that triggered the event
         """
         if not ("custom_id" in interaction.data.keys()) or interaction.data["custom_id"] != "suggestion:proposal":
             return
@@ -81,6 +94,17 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
     async def make_suggestion(self, title, content, channel, user) -> None:
         """
         Create suggestion message, add reactions and then create a thread.
+
+        Parameters
+        ----------
+        title : str
+            Suggestion's title
+        content : str
+            Suggestion's content
+        channel : discord.TextChannel
+            Channel where the suggestion is sent
+        user : discord.User
+            User who made the suggestion
         """
         embed = discord.Embed(
             title=title,
@@ -115,7 +139,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
                 state=self.State.OPEN.value,
             )
         )
-        await self.__send_suggestions_rules(msg.channel)
+        await self.__send_suggestions_process(msg.channel)
 
     async def finish_suggestion(self, response: InteractionResponse, thread: Thread, new_state: State, staff: int, reason: Optional[str]) -> None:
         """
@@ -123,8 +147,8 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
 
         Parameters
         ----------
-        response : Context
-            Command context
+        response : InteractionResponse
+            Response to the modal
         thread: Thread
             Suggestion's thread
         new_state : State
@@ -214,7 +238,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         """
         Send the proposal suggestion message
         """
-        await self.__send_suggestions_rules(channel)
+        await self.__send_suggestions_process(channel)
         await ctx.send("Le salon des suggestions a été créé.", ephemeral=True)
 
     @hybrid_command(name="close")
@@ -248,12 +272,12 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
     )
     async def list(self, ctx, state: str) -> None:
         """
-        Affiche les suggestions
+        Display suggestions list
 
         Parameters
         ----------
         state : str
-            Le type de suggestions à afficher : En cours/Acceptées/Refusées/Fermées
+            Suggestion's state to display (open, accepted, declined, closed)
         """
         suggestions = database.execute(
             select(SuggestionModel)
@@ -292,6 +316,10 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         await ctx.send(embed=embed)
 
     class SuggestionsModal(Modal, title='Soumettre une suggestion'):
+        """
+        Modal to submit a suggestion
+        """
+
         def __init__(self, suggestion, channel):
             super().__init__()
             self.suggestion = suggestion
@@ -328,6 +356,10 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
             await interaction.response.send_message("Quelque chose s'est mal passé lors de la réception !", ephemeral=True)
 
     class SuggestionsCloseModal(Modal, title="Fermer une suggestion"):
+        """
+        Modal to close a suggestion
+        """
+
         def __init__(self, suggestion, thread, state):
             super().__init__()
             self.suggestion = suggestion
