@@ -4,9 +4,10 @@ from typing import Optional
 from math import ceil
 
 import discord
-from discord import AuditLogAction
+from discord import AuditLogAction, app_commands, TextStyle, AppCommandType
 from discord.ext.commands import Cog, hybrid_command, guild_only
 from discord.app_commands import Choice, choices
+from discord.ui import Modal, TextInput
 from sqlalchemy import insert, select, delete
 
 from mp2i.utils import database
@@ -24,6 +25,13 @@ class Sanction(Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.ctx_menu = app_commands.ContextMenu(
+            name='Avertir',
+            callback=self.warn_interaction,
+            type=AppCommandType.user
+        )
+        self.ctx_menu.checks.append(has_any_role("Modérateur", "Administrateur").predicate)
+        self.bot.tree.add_command(self.ctx_menu)
 
     def __register_sanction_in_database(
         self,
@@ -47,27 +55,27 @@ class Sanction(Cog):
             )
         )
 
-    @hybrid_command(name="warn")
-    @guild_only()
-    @has_any_role("Modérateur", "Administrateur")
-    async def warn(self, ctx, member: discord.Member, send_dm: bool, *,
-                   reason: str) -> None:  # fmt: skip
+    async def warn(self, ctx, guild, member: discord.User, staff: discord.User, send_dm: bool, reason: str) -> None:
         """
         Avertit un utilisateur pour une raison donnée.
 
         Parameters
         ----------
-        member : discord.Member
+        guild: discord.Guild
+            Le serveur sur lequel l'avertissement est donné.
+        member : discord.User
             L'utilisateur à avertir.
+        staff : discord.User
+            L'utilisateur qui avertit.
         send_dm : bool
             Si True, l'utilisateur sera averti par message privé.
         reason : str
             La raison de l'avertissement.
         """
         self.__register_sanction_in_database(
-            staff=ctx.author.id,
+            staff=staff.id,
             member=member.id,
-            guild=ctx.guild.id,
+            guild=guild.id,
             date=datetime.now(),
             type="warn",
             duration=None,
@@ -91,7 +99,7 @@ class Sanction(Cog):
             timestamp=datetime.now(),
         )
         embed.add_field(name="Utilisateur", value=member.mention)
-        embed.add_field(name="Staff", value=ctx.author.mention)
+        embed.add_field(name="Staff", value=staff.mention)
         embed.add_field(name="Raison", value=reason, inline=False)
         if send_dm and message_sent:
             embed.add_field(
@@ -106,10 +114,32 @@ class Sanction(Cog):
 
         await ctx.send(embed=embed, ephemeral=True)
 
-        guild = GuildWrapper(ctx.guild)
+        guild = GuildWrapper(guild)
         if not guild.sanctions_log_channel:
             return
         await guild.sanctions_log_channel.send(embed=embed)
+
+
+    async def warn_interaction(self, interaction: discord.Interaction, member: discord.Member) -> None:
+        await interaction.response.send_modal(self.WarnModal(self, member))
+
+    @hybrid_command(name="warn")
+    @guild_only()
+    @has_any_role("Modérateur", "Administrateur")
+    async def warn_command(self, ctx, member: discord.Member, send_dm: bool, reason: str) -> None:
+        """
+        Avertit un utilisateur pour une raison donnée.
+
+        Parameters
+        ----------
+        member : discord.Member
+            L'utilisateur à avertir.
+        send_dm : bool
+            Si True, l'utilisateur sera averti par message privé.
+        reason : str
+            La raison de l'avertissement.
+        """
+        await self.warn(ctx, ctx.guild, member, ctx.author, send_dm, reason)
 
     @hybrid_command(name="sanctionlist")
     @guild_only()
@@ -393,6 +423,45 @@ class Sanction(Cog):
                 ),  # +60 indique la minute qui suit, mieux vaut large que pas assez
             )
 
+    class WarnModal(Modal, title="Avertir un member"):
+        def __init__(self, sanction, member):
+            super().__init__()
+            self.sanction = sanction
+            self.member = member
+            self.add_item(
+                TextInput(
+                    label = 'Raison',
+                    placeholder = "Votre comportement ne sied guère à l'esprit du serveur...",
+                    max_length = 3096,
+                    style = TextStyle.paragraph,
+                    required = True
+                )
+            )
+            self.add_item(
+                TextInput(
+                    label = "Envoi d'un message privé",
+                    placeholder = '`non` => ne pas envoyer, autre chose => oui',
+                    max_length = 10,
+                    required = False
+                )
+            )
+
+        async def on_submit(self, interaction: discord.Interaction):
+            await interaction.response.defer()
+            reason = self.children[0].value
+            send_dm = self.children[1].value != "non"
+            await self.sanction.warn(
+                ctx=interaction.followup,
+                guild=interaction.guild,
+                member=self.member,
+                staff=interaction.user,
+                send_dm=send_dm,
+                reason=reason
+            )
+
+        async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
+            logger.error(error)
+            await interaction.followup.send("Quelque chose s'est mal passé lors de la réception !", ephemeral=True)
 
 async def setup(bot) -> None:
     await bot.add_cog(Sanction(bot))
