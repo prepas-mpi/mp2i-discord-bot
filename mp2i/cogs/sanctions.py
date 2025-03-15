@@ -414,14 +414,8 @@ class Sanction(Cog):
             insert_in_database(
                 "to", int(ceil(end_of_sanction - datetime.now().timestamp()))
             )
-            await handle_log_to(
-                user,
-                staff,
-                entry.reason,
-                int(
-                    end_of_sanction + 60
-                ),  # +60 indique la minute qui suit, mieux vaut large que pas assez
-            )
+            # +60 indique la minute qui suit, mieux vaut large que pas assez
+            await handle_log_to(user, staff, entry.reason, int(end_of_sanction + 60))
 
     class WarnModal(Modal, title="Avertir un member"):
         def __init__(self, sanction, member):
