@@ -4,6 +4,7 @@ from typing import Optional
 from operator import attrgetter
 
 import discord
+from discord import app_commands, AppCommandType
 from discord.ext.commands import Cog, Range
 from discord.ext.commands import (
     hybrid_command,
@@ -26,6 +27,13 @@ LEADERBOARD_RANK_MAX = 50
 class Commands(Cog):
     def __init__(self, bot):
         self.bot = bot
+        ctx_menu = app_commands.ContextMenu(
+            name='Profil',
+            callback=self.get_profile,
+            type=AppCommandType.user
+        )
+        ctx_menu.guild_only = True
+        self.bot.tree.add_command(ctx_menu)
 
     @Cog.listener("on_ready")
     async def set_default_status(self) -> None:
@@ -111,19 +119,18 @@ class Commands(Cog):
             await ctx.reply(f"Message envoyé dans {channel.mention}.", ephemeral=True)
         await channel.send(message)
 
-    @hybrid_command(name="profile")
-    @guild_only()
-    @defer()
-    async def profile(self, ctx, member: Optional[discord.Member] = None) -> None:
+    async def generate_profile(self, ctx, user: discord.Member, member: Optional[discord.Member] = None, ephemeral: bool = False) -> None:
         """
         Consulte les infos d'un membre.
 
         Parameters
         ----------
+        user: discord.Member
+            Membre qui exécute la commande.
         member : discord.Member
             Membre à consulter.
         """
-        member = MemberWrapper(member or ctx.author)
+        member = MemberWrapper(member or user)
         embed = discord.Embed(title="Profil", colour=int(member.profile_color, 16))
         embed.set_author(name=member.name)
         if member.avatar is None:
@@ -144,7 +151,35 @@ class Commands(Cog):
         if member.engineering_school is not None:
             embed.add_field(name="École d'ingénieur", value=member.engineering_school)
 
-        await ctx.send(embed=embed)
+        await ctx.send(embed=embed, ephemeral=ephemeral)
+
+    async def get_profile(self, interaction: discord.Interaction, member: discord.Member):
+        """
+        Consulte les infos d'un membre.
+
+        Parameters
+        ----------
+        interaction : discord.Interaction
+            Interaction du contexte.
+        member : discord.Member
+            Membre à consulter.
+        """
+        await interaction.response.defer()
+        await self.generate_profile(interaction.followup, interaction.user, member, True)
+
+    @hybrid_command(name="profile")
+    @guild_only()
+    @defer()
+    async def profile(self, ctx, member: Optional[discord.Member] = None) -> None:
+        """
+        Consulte les infos d'un membre.
+
+        Parameters
+        ----------
+        member : discord.Member
+            Membre à consulter.
+        """
+        await self.generate_profile(ctx, ctx.author, member)
 
     @hybrid_command(name="profilecolor")
     @guild_only()
