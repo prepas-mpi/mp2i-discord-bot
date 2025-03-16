@@ -25,14 +25,14 @@ class Sanction(Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.ctx_menu = app_commands.ContextMenu(
+        ctx_menu = app_commands.ContextMenu(
             name='Avertir',
             callback=self.warn_interaction,
             type=AppCommandType.user
         )
-        self.ctx_menu.guild_only = True
-        self.ctx_menu.checks.append(has_any_role("Modérateur", "Administrateur").predicate)
-        self.bot.tree.add_command(self.ctx_menu)
+        ctx_menu.guild_only = True
+        ctx_menu.checks.append(has_any_role("Modérateur", "Administrateur").predicate)
+        self.bot.tree.add_command(ctx_menu)
 
     def __register_sanction_in_database(
         self,
