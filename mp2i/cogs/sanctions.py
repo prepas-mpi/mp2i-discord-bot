@@ -30,6 +30,7 @@ class Sanction(Cog):
             callback=self.warn_interaction,
             type=AppCommandType.user
         )
+        self.ctx_menu.guild_only = True
         self.ctx_menu.checks.append(has_any_role("Modérateur", "Administrateur").predicate)
         self.bot.tree.add_command(self.ctx_menu)
 
