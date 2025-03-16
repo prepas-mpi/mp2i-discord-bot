@@ -102,9 +102,7 @@ class Sanction(Cog):
         embed.add_field(name="Staff", value=staff.mention)
         embed.add_field(name="Raison", value=reason, inline=False)
         if send_dm and message_sent:
-            embed.add_field(
-                name="Message privé", value="L'utilisateur a été averti.", inline=False
-            )
+            embed.add_field(name="Message privé", value="L'utilisateur a été averti.", inline=False)
         elif send_dm:
             embed.add_field(
                 name="Message privé",
@@ -203,7 +201,10 @@ class Sanction(Cog):
             content += "\n"
 
         embed = discord.Embed(
-            title=title, description=content, colour=0xFF00FF, timestamp=datetime.now()
+            title=title,
+            description=content,
+            colour=0xFF00FF,
+            timestamp=datetime.now()
         )
         await ctx.send(embed=embed)
 
@@ -309,9 +310,7 @@ class Sanction(Cog):
             dm_sent = False
             if reason:
                 try:
-                    await user.send(
-                        f"Vous avez été TO jusqu'à <t:{time}:F> pour la raison : \n>>> {reason}"
-                    )
+                    await user.send(f"Vous avez été TO jusqu'à <t:{time}:F> pour la raison : \n>>> {reason}")
                     dm_sent = True
                 except discord.Forbidden:
                     dm_sent = False
@@ -365,13 +364,11 @@ class Sanction(Cog):
         try:
             user = entry.target
             entry.target.name  # génère une erreur si la cible n'est pas sur le serveur
-        except Exception:  # pas la peine de cibler l'erreur.
+        except Exception:  # pas la peine de cibler l'erreur.
             try:
                 user = await self.bot.fetch_user(entry.target.id)
             except discord.NotFound:
-                logger.error(
-                    f"Failed to fetch user {entry.target.id} ! Cannot log their sanction."
-                )
+                logger.error(f"Failed to fetch user {entry.target.id} ! Cannot log their sanction.")
                 return
         staff = entry.user  # renommage pour meilleure compréhension
 
@@ -385,9 +382,7 @@ class Sanction(Cog):
                 duration=duration,
                 reason=entry.reason
             )
-            logger.info(
-                f"{staff.name} ({staff.id}) {type} {user.name} ({user.id})."
-            )
+            logger.info(f"{staff.name} ({staff.id}) {type} {user.name} ({user.id}).")
 
         if entry.action == AuditLogAction.ban:
             insert_in_database("ban", None)
@@ -411,9 +406,7 @@ class Sanction(Cog):
             and entry.before.timed_out_until < entry.after.timed_out_until
         ):
             end_of_sanction = entry.after.timed_out_until.timestamp()
-            insert_in_database(
-                "to", int(ceil(end_of_sanction - datetime.now().timestamp()))
-            )
+            insert_in_database("to", int(ceil(end_of_sanction - datetime.now().timestamp())))
             # +60 indique la minute qui suit, mieux vaut large que pas assez
             await handle_log_to(user, staff, entry.reason, int(end_of_sanction + 60))
 
