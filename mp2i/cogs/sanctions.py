@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Union
 from math import ceil
 
 import discord
@@ -13,7 +13,7 @@ from sqlalchemy import insert, select, delete
 from mp2i.utils import database
 from mp2i.models import SanctionModel
 from mp2i.wrappers.guild import GuildWrapper
-from mp2i.utils.discord import has_any_role
+from mp2i.utils.discord import has_any_role, interaction_has_any_role
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ class Sanction(Cog):
             type=AppCommandType.user
         )
         ctx_menu.guild_only = True
-        ctx_menu.checks.append(has_any_role("Modérateur", "Administrateur").predicate)
+        ctx_menu.checks.append(interaction_has_any_role("Modérateur", "Administrateur").predicate)
         self.bot.tree.add_command(ctx_menu)
 
     def __register_sanction_in_database(
@@ -56,7 +56,8 @@ class Sanction(Cog):
             )
         )
 
-    async def warn(self, ctx, guild, member: discord.User, staff: discord.User, send_dm: bool, reason: str) -> None:
+    async def warn(self, ctx, guild, member: Union[discord.User, discord.Member], staff: discord.User,
+                   send_dm: bool, reason: str) -> None:
         """
         Avertit un utilisateur pour une raison donnée.
 
