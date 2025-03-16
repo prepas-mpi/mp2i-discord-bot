@@ -119,16 +119,18 @@ class Commands(Cog):
             await ctx.reply(f"Message envoyé dans {channel.mention}.", ephemeral=True)
         await channel.send(message)
 
-    async def generate_profile(self, ctx, user: discord.Member, member: Optional[discord.Member] = None, ephemeral: bool = False) -> None:
+    async def generate_profile(self, ctx, user: discord.Member, member: Optional[discord.Member] = None) -> None:
         """
         Consulte les infos d'un membre.
 
         Parameters
         ----------
-        user: discord.Member
+        user : discord.Member
             Membre qui exécute la commande.
         member : discord.Member
             Membre à consulter.
+        ephemeral : bool
+            Message personnel.
         """
         member = MemberWrapper(member or user)
         embed = discord.Embed(title="Profil", colour=int(member.profile_color, 16))
@@ -151,7 +153,7 @@ class Commands(Cog):
         if member.engineering_school is not None:
             embed.add_field(name="École d'ingénieur", value=member.engineering_school)
 
-        await ctx.send(embed=embed, ephemeral=ephemeral)
+        await ctx.send(embed=embed)
 
     async def get_profile(self, interaction: discord.Interaction, member: discord.Member):
         """
@@ -164,8 +166,8 @@ class Commands(Cog):
         member : discord.Member
             Membre à consulter.
         """
-        await interaction.response.defer()
-        await self.generate_profile(interaction.followup, interaction.user, member, True)
+        await interaction.response.defer(ephemeral=True)
+        await self.generate_profile(interaction.followup, interaction.user, member)
 
     @hybrid_command(name="profile")
     @guild_only()
