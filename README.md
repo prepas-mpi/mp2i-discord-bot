@@ -2,21 +2,22 @@
 <h4 align="center">A Discord bot for MP2I server </h4>
 
 <p align="center">
-    <a href="https://github.com/prepas-mp2i/mp2i-discord-bot#overview">Overview</a> •
-    <a href="https://github.com/prepas-mp2i/mp2i-discord-bot#software">Software</a> •
-    <a href="https://github.com/prepas-mp2i/mp2i-discord-bot#installation">Installation</a>
+    <a href="https://github.com/prepas-mpi/mp2i-discord-bot#overview">Overview</a> •
+    <a href="https://github.com/prepas-mpi/mp2i-discord-bot#software">Software</a> •
+    <a href="https://github.com/prepas-mpi/mp2i-discord-bot#installation">Installation</a>
 </p>
 
-![GitHub top language: Python](https://img.shields.io/github/languages/top/prepas-mp2i/mp2i-discord-bot) &nbsp;
+![GitHub top language: Python](https://img.shields.io/github/languages/top/prepas-mpi/mp2i-discord-bot) &nbsp;
 ![Python3.9](https://img.shields.io/badge/python-3.9-red) &nbsp;
 [![discord.py](https://img.shields.io/badge/discord-py-orange.svg)](https://github.com/Rapptz/discord.py) &nbsp;
-![GitHub repo size](https://img.shields.io/github/repo-size/prepas-mp2i/mp2i-discord-bot) &nbsp;
+![GitHub repo size](https://img.shields.io/github/repo-size/prepas-mpi/mp2i-discord-bot) &nbsp;
 [![License](https://img.shields.io/badge/license-Mozilla%20Public%20License%202.0-green)](LICENSE) &nbsp;
-![GitHub last commit (branch)](https://img.shields.io/github/last-commit/prepas-mp2i/mp2i-discord-bot) &nbsp;
+![GitHub last commit (branch)](https://img.shields.io/github/last-commit/prepas-mpi/mp2i-discord-bot) &nbsp;
 
 ## Overview
 
 **MP2I** is a Discord bot adapted from [PyBoss](https://github.com/ajayat/pyboss) bot created by [Adridri](https://github.com/ajayat).
+Original code source is available at [this url](https://github.com/prepas-mp2i/prepas-mp2i.fr) and was originally led by [Adridri](https://github.com/ajayat).
 
 It provides some features like:
 
