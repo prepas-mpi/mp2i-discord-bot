@@ -138,7 +138,7 @@ class Suggestion(Cog):
             colour=0x00FF00,
             title="Message épinglé",
             description="Un message a été retenu par la communauté, vous pouvez "
-            "probablement l'ajouter dans la [FAQ](https://prepas-mp2i.fr/faq/).",
+            "probablement l'ajouter dans la [FAQ](https://prepas-mp2i.org/faq/).",
             timestamp=datetime.now(),
         )
         embed.add_field(name="Lien du message", value=message.jump_url)
