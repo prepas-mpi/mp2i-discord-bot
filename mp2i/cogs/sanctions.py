@@ -438,7 +438,7 @@ class Sanction(Cog):
         async def on_submit(self, interaction: discord.Interaction):
             await interaction.response.defer()
             reason = self.children[0].value
-            send_dm = self.children[1].value != "non"
+            send_dm = self.children[1].value.strip().lower() != "non"
             await self.sanction.warn(
                 ctx=interaction.followup,
                 guild=interaction.guild,
