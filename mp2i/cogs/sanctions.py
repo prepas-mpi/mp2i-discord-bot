@@ -429,7 +429,7 @@ class Sanction(Cog):
             self.add_item(
                 TextInput(
                     label = "Envoi d'un message privé",
-                    placeholder = '`non` => ne pas envoyer, autre chose => oui',
+                    placeholder = 'oui/non',
                     max_length = 10,
                     required = False
                 )
