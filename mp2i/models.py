@@ -1,3 +1,7 @@
+from datetime import timedelta
+from typing import Optional
+
+import humanize
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy import Integer, BigInteger, Column, DateTime, String, Text, ForeignKey
 from sqlalchemy.schema import PrimaryKeyConstraint, ForeignKeyConstraint
@@ -75,10 +79,18 @@ class SanctionModel(Base):
     guild_id: int = Column(BigInteger, ForeignKey("guilds.id", ondelete="CASCADE"))
     date = Column(DateTime)
     type: str = Column(String(50))
+    duration = Column(BigInteger, nullable=True)
     reason: str = Column(Text, nullable=True)
 
     def __repr__(self):
         return (
-            f"Sanction(by={self.by_id}, to={self.to_id}, type={self.type},"
-            f"description={self.description:30.30}"
+            f"Sanction(by={self.by_id}, to={self.to_id}, type={self.type}"
+            f"duration={self.duration}, description={f'{self.reason:30.30}' if self.reason else ''})"
         )
+
+    @property
+    def get_duration(self) -> Optional[str]:
+        duration = self.duration
+        if not duration:
+            return None
+        return humanize.naturaldelta(timedelta(seconds=duration))
