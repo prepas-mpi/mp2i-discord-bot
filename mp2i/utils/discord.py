@@ -1,6 +1,7 @@
 import logging
 from functools import wraps
 
+import discord
 from discord.ext.commands.errors import NoPrivateMessage, MissingAnyRole
 from discord.ext.commands import check
 
@@ -17,7 +18,10 @@ def defer(ephemeral: bool = False):
     def decorator(func):
         @wraps(func)
         async def command_wrapper(self, ctx, *args, **kwargs):
-            await ctx.defer(ephemeral=ephemeral)
+            if type(ctx) is discord.Interaction:
+                await ctx.response.defer(ephemeral=ephemeral)
+            else:
+                await ctx.defer(ephemeral=ephemeral)
             await func(self, ctx, *args, **kwargs)
 
         return command_wrapper
