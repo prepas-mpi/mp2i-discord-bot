@@ -144,7 +144,7 @@ class Commands(Cog):
         embed.add_field(name="Messages", value=member.messages_count)
         embed.add_field(
             name="Rôles",
-            value=" ".join(r.mention for r in member.roles if r.name != "@everyone"),
+            value=" ".join(r.mention for r in reversed(member.roles) if r.name != "@everyone"),
         )
         if member.high_school:
             embed.add_field(name="CPGE", value=member.high_school)
