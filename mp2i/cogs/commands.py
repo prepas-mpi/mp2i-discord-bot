@@ -155,6 +155,7 @@ class Commands(Cog):
 
         await ctx.send(embed=embed)
 
+    @defer(ephemeral=True)
     async def get_profile(self, interaction: discord.Interaction, member: discord.Member):
         """
         Consulte les infos d'un membre.
@@ -166,7 +167,6 @@ class Commands(Cog):
         member : discord.Member
             Membre à consulter.
         """
-        await interaction.response.defer(ephemeral=True)
         await self.generate_profile(interaction.followup, interaction.user, member)
 
     @hybrid_command(name="profile")
