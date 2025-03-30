@@ -127,8 +127,10 @@ class EventsCog(Cog):
         """
         When a message is edited, send logs in the log channel
         """
+        if not before.guild:
+            return
         guild = GuildWrapper(before.guild)
-        if not before.guild or not (log_chan := guild.log_channel):
+        if not (log_chan := guild.log_channel):
             return
         
         if before.channel == guild.admin_channel or before.author.bot:
