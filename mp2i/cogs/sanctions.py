@@ -190,14 +190,7 @@ class Sanction(Cog):
             content += f"**{sanction.id}** ━ Le {sanction.date:%d/%m/%Y à %H:%M}\n"
             content += f"> **Type :** {sanction.type}\n"
             if not member:
-                try:
-                    to = ctx.guild.get_member(sanction.to_id).mention
-                except Exception:
-                    to = "<@" + database.execute(select(MemberModel).where(
-                        MemberModel.id == sanction.to_id
-                    ).limit(1)).scalars().first().id + ">"
-
-                content += f"> **Membre :** {to}\n"
+                content += f"> **Membre :** <@{sanction.to_id}>\n"
 
             duration = sanction.get_duration
             if duration:
