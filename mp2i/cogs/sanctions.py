@@ -11,9 +11,10 @@ from discord.ui import Modal, TextInput
 from sqlalchemy import insert, select, delete
 
 from mp2i.utils import database
-from mp2i.models import SanctionModel
+from mp2i.models import SanctionModel, MemberModel
 from mp2i.wrappers.guild import GuildWrapper
 from mp2i.utils.discord import has_any_role, interaction_has_any_role
+from mp2i.wrappers.member import MemberWrapper
 
 logger = logging.getLogger(__name__)
 
@@ -168,12 +169,13 @@ class Sanction(Cog):
             Le membre dont on veut lister les sanctions.
         """
         if member:
+            target = MemberWrapper(member)
             request = select(SanctionModel).where(
                 SanctionModel.to_id == member.id,
                 SanctionModel.guild_id == ctx.guild.id,
                 True if type == "*" else SanctionModel.type == type,
             )
-            title = f"Liste des sanctions de {member.name}"
+            title = f"Liste des sanctions de {target.name}"
         else:
             request = select(SanctionModel).where(
                 SanctionModel.guild_id == ctx.guild.id,
@@ -188,8 +190,14 @@ class Sanction(Cog):
             content += f"**{sanction.id}** ━ Le {sanction.date:%d/%m/%Y à %H:%M}\n"
             content += f"> **Type :** {sanction.type}\n"
             if not member:
-                to = ctx.guild.get_member(sanction.to_id)
-                content += f"> **Membre :** {to.mention}\n"
+                try:
+                    to = ctx.guild.get_member(sanction.to_id).mention
+                except Exception:
+                    to = "<@" + database.execute(select(MemberModel).where(
+                        MemberModel.id == sanction.to_id
+                    ).limit(1)).scalars().first().id + ">"
+
+                content += f"> **Membre :** {to}\n"
 
             duration = sanction.get_duration
             if duration:
