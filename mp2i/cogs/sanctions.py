@@ -175,7 +175,10 @@ class Sanction(Cog):
                 SanctionModel.guild_id == ctx.guild.id,
                 True if type == "*" else SanctionModel.type == type,
             )
-            title = f"Liste des sanctions de {target.name}"
+            try:
+                title = f"Liste des sanctions de {target.name}"
+            except AttributeError:
+                title = f"Liste des sanctions de {target.cached_name}"
         else:
             request = select(SanctionModel).where(
                 SanctionModel.guild_id == ctx.guild.id,
