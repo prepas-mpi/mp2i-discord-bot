@@ -211,21 +211,21 @@ class Sanction(Cog):
         )
         await ctx.send(embed=embed)
 
-    @hybrid_command(name="unwarn")
+    @hybrid_command(name="rmsanction")
     @guild_only()
     @has_any_role("Modérateur", "Administrateur")
-    async def unwarn(self, ctx, id: int) -> None:
+    async def rmsanction(self, ctx, id: int) -> None:
         """
-        Supprime un avertissement.
+        Supprime une sanction.
 
         Parameters
         ----------
         id : int
-            L'identifiant de l'avertissement à supprimer.
+            L'identifiant de la sanction à supprimer.
         """
         database.execute(delete(SanctionModel).where(SanctionModel.id == id))
-        message = f"L'avertissement {id} a été supprimé."
-        await ctx.send(message)
+        message = f"La sanction d'identifiant {id} a été supprimée."
+        await ctx.send(message, ephemeral=True)
         guild = GuildWrapper(ctx.guild)
         if not guild.sanctions_log_channel:
             return
