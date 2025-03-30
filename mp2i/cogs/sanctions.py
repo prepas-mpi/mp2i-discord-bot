@@ -11,7 +11,7 @@ from discord.ui import Modal, TextInput
 from sqlalchemy import insert, select, delete
 
 from mp2i.utils import database
-from mp2i.models import SanctionModel, MemberModel
+from mp2i.models import SanctionModel
 from mp2i.wrappers.guild import GuildWrapper
 from mp2i.utils.discord import has_any_role, interaction_has_any_role
 from mp2i.wrappers.member import MemberWrapper
