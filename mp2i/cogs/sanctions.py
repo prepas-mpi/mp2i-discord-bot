@@ -224,7 +224,7 @@ class Sanction(Cog):
         """
         database.execute(delete(SanctionModel).where(SanctionModel.id == id))
         message = f"L'avertissement {id} a été supprimé."
-        await ctx.send(message)
+        await ctx.send(message, ephemeral=True)
         guild = GuildWrapper(ctx.guild)
         if not guild.sanctions_log_channel:
             return
