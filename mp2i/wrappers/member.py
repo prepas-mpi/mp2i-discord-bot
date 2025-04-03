@@ -97,6 +97,10 @@ class MemberWrapper:
         return guild.get_role_by_qualifier(self.__model.role)
 
     @property
+    def cached_name(self) -> str:
+        return self.__model.name
+
+    @property
     def messages_count(self) -> int:
         return self.__model.messages_count
 

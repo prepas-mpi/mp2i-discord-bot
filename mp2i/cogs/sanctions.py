@@ -14,6 +14,7 @@ from mp2i.utils import database
 from mp2i.models import SanctionModel
 from mp2i.wrappers.guild import GuildWrapper
 from mp2i.utils.discord import has_any_role
+from mp2i.wrappers.member import MemberWrapper
 
 logger = logging.getLogger(__name__)
 
@@ -168,12 +169,16 @@ class Sanction(Cog):
             Le membre dont on veut lister les sanctions.
         """
         if member:
+            target = MemberWrapper(member)
             request = select(SanctionModel).where(
                 SanctionModel.to_id == member.id,
                 SanctionModel.guild_id == ctx.guild.id,
                 True if type == "*" else SanctionModel.type == type,
             )
-            title = f"Liste des sanctions de {member.name}"
+            try:
+                title = f"Liste des sanctions de {target.name}"
+            except AttributeError:
+                title = f"Liste des sanctions de {target.cached_name}"
         else:
             request = select(SanctionModel).where(
                 SanctionModel.guild_id == ctx.guild.id,
@@ -188,8 +193,7 @@ class Sanction(Cog):
             content += f"**{sanction.id}** ━ Le {sanction.date:%d/%m/%Y à %H:%M}\n"
             content += f"> **Type :** {sanction.type}\n"
             if not member:
-                to = ctx.guild.get_member(sanction.to_id)
-                content += f"> **Membre :** {to.mention}\n"
+                content += f"> **Membre :** <@{sanction.to_id}>\n"
 
             duration = sanction.get_duration
             if duration:
@@ -210,21 +214,21 @@ class Sanction(Cog):
         )
         await ctx.send(embed=embed)
 
-    @hybrid_command(name="unwarn")
+    @hybrid_command(name="rmsanction")
     @guild_only()
     @has_any_role("Modérateur", "Administrateur")
-    async def unwarn(self, ctx, id: int) -> None:
+    async def rmsanction(self, ctx, id: int) -> None:
         """
-        Supprime un avertissement.
+        Supprime une sanction.
 
         Parameters
         ----------
         id : int
-            L'identifiant de l'avertissement à supprimer.
+            L'identifiant de la sanction à supprimer.
         """
         database.execute(delete(SanctionModel).where(SanctionModel.id == id))
-        message = f"L'avertissement {id} a été supprimé."
-        await ctx.send(message)
+        message = f"La sanction d'identifiant {id} a été supprimée."
+        await ctx.send(message, ephemeral=True)
         guild = GuildWrapper(ctx.guild)
         if not guild.sanctions_log_channel:
             return
