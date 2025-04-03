@@ -5,7 +5,7 @@ from typing import Optional
 
 import discord
 from discord import TextStyle, Thread, Webhook
-from discord.ext.commands import Cog, GroupCog, guild_only, hybrid_command, Context
+from discord.ext.commands import Cog, GroupCog, guild_only, hybrid_command
 from discord.app_commands import Choice, choices
 from discord.ui import Modal, TextInput
 from sqlalchemy import delete, insert, select, update
@@ -253,7 +253,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
             Choice(name="Fermer simplement", value=State.CLOSED.value),
         ]
     )
-    async def close(self, ctx: Context, state: str) -> None:
+    async def close(self, ctx, state: str) -> None:
         """
         Send a modal to close a suggestion
         """
