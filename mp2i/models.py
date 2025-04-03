@@ -47,7 +47,6 @@ class SuggestionModel(Base):
     guild_id: int = Column(BigInteger, ForeignKey("guilds.id", ondelete="CASCADE"))
     date = Column(DateTime, nullable=True)
     message_id: int = Column(BigInteger, nullable=True, unique=True)
-    channel_id: int = Column(BigInteger, nullable=True)
     state: str = Column(String(50), nullable=False, default="open")
     title: str = Column(String(80))
     description: str = Column(String(3072))
@@ -58,9 +57,6 @@ class SuggestionModel(Base):
         return (
             f"Suggestion(author={self.author_id}, title={self.title:30.30}"
         )
-
-    def to_url(self):
-        return f"https://discord.com/channels/{self.guild_id}/{self.channel_id}/{self.message_id}"
 
 
 class SanctionModel(Base):

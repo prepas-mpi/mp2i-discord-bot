@@ -40,7 +40,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         def from_str(cls, value: str):
             return cls(value)
 
-    async def __send_suggestions_process(self, channel) -> None:
+    async def __send_suggestions_process(self, guild) -> None:
         """
         Display suggestions process.
 
@@ -49,7 +49,11 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         channel : discord.TextChannel
             Channel where the suggestions process is sent
         """
-        guild = GuildWrapper(channel.guild)
+        guild = GuildWrapper(guild)
+        channel = guild.suggestion_channel
+        if not channel:
+            return
+
         if guild.suggestion_message_id:
             try:
                 message = await channel.fetch_message(guild.suggestion_message_id)
@@ -135,7 +139,6 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
                 title=title,
                 description=msg.content,
                 message_id=msg.id,
-                channel_id=msg.channel.id,
                 state=self.State.OPEN.value,
             )
         )
@@ -205,7 +208,8 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         embed.description = f"{embed.description}\n\n🗳 **Votes**\n{accept} ✅ • {decline} ❌"
         if reason:
             embed.description = f"{embed.description}\n\n\uD83D\uDCDD **Réponse de l'équipe**\n{reason}"
-            content += f" Vous retrouverez la raison de cette décision dans le message suivant : {suggestion.to_url()}."
+            content += " Vous retrouverez la raison de cette décision dans le message suivant :" + \
+                f" {await self.__retrieve_message_url(thread.guild, suggestion)}."
         await thread.send(content)
         await message.edit(embed=embed)
         await message.clear_reactions()
@@ -234,12 +238,22 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
 
     @hybrid_command(name="create_proposal")
     @has_any_role("Administrateur")
-    async def create(self, ctx, channel: discord.TextChannel) -> None:
+    async def create(self, ctx) -> None:
         """
         Send the proposal suggestion message
         """
-        await self.__send_suggestions_process(channel)
-        await ctx.send("Le salon des suggestions a été créé.", ephemeral=True)
+        guild = ctx.guild
+        if not guild:
+            await ctx.send("Vous devez être dans un serveur.", ephemeral=True)
+            return
+
+        guild = GuildWrapper(guild)
+        if not guild.suggestion_channel:
+            await ctx.send("Aucun salon de suggestions n'a été défini.", ephemeral=True)
+            return
+
+        await self.__send_suggestions_process(guild)
+        await ctx.send("Le message de création de suggestions a été créé.", ephemeral=True)
 
     @hybrid_command(name="close")
     @has_any_role("Administrateur")
@@ -259,6 +273,23 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
             return
         thread: Thread = ctx.channel
         await ctx.interaction.response.send_modal(self.SuggestionsCloseModal(self, thread, self.State.from_str(state)))
+
+    async def __retrieve_message_url(self, guild, suggestion):
+        """
+        Get a jump URL to the suggestion message
+        """
+        guild = GuildWrapper(guild)
+        if not guild:
+            return None
+        channel = guild.suggestion_channel
+        if not channel:
+            return None
+        try:
+            message = await channel.fetch_message(suggestion.message_id)
+            return message.jump_url
+        except discord.NotFound:
+            logger.warning(f"Suggestion message not found for id {suggestion.id}.")
+            return None
 
 
     @hybrid_command(name="list")
@@ -310,7 +341,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
 
             embed.add_field(
                 name=f"{i+1} - {suggestion.title} le {suggestion.date:%d/%m/%Y}",
-                value=suggestion.to_url(),
+                value=await self.__retrieve_message_url(ctx.guild, suggestion),
                 inline=False,
             )
         await ctx.send(embed=embed)
