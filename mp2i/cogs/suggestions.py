@@ -345,8 +345,8 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
                 )
             )
 
+        @defer(ephemeral=True)
         async def on_submit(self, interaction: discord.Interaction):
-            await interaction.response.defer()
             title = self.children[0].value
             content = self.children[1].value
             await self.suggestion.make_suggestion(title, content, self.channel, interaction.user)
@@ -380,8 +380,8 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
                 )
             )
 
+        @defer(ephemeral=True)
         async def on_submit(self, interaction: discord.Interaction):
-            await interaction.response.defer()
             reason = self.children[0].value
             await self.suggestion.finish_suggestion(interaction.followup, self.thread, self.state, interaction.user.id, reason)
 
