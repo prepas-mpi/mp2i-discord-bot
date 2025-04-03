@@ -223,13 +223,10 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
 
 
     @Cog.listener("on_message_delete")
-    @has_any_role()
-    async def on_message_delete(self, ctx, message) -> None:
+    async def on_message_delete(self, message) -> None:
         """
         Delete suggestion in database when message is deleted.
         """
-        if not has_any_role("Administrateur", "Modérateur").predicate(ctx):
-            return
         database.execute(
             delete(SuggestionModel)
             .where(SuggestionModel.message_id == message.id)
