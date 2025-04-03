@@ -334,7 +334,8 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         elif state == self.State.OPEN:
             embed = discord.Embed(title=f"Suggestions en cours", colour=0xA9A6A7, timestamp=datetime.now())
         else:
-            await ctx.send("La base de données n'est plus cohérente !!", ephemeral=True)
+            await ctx.send("L'état demandé n'est pas supporté.", ephemeral=True)
+            logger.error("État invalide pour la valeur %s", state)
             return
 
         for i, suggestion in enumerate(suggestions):
