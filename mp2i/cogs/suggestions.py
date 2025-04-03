@@ -14,7 +14,7 @@ from mp2i import STATIC_DIR
 from mp2i.models import SuggestionModel
 from mp2i.utils import database
 from mp2i.wrappers.guild import GuildWrapper
-from mp2i.utils.discord import defer, has_any_role
+from mp2i.utils.discord import has_any_role, defer
 
 logger = logging.getLogger(__name__)
 
@@ -337,7 +337,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
                     label='Contenu de la suggestion',
                     placeholder=
                     "Veuillez être assez précis sur la description de votre suggestion," +
-                    "elle ne pourra pas être modifié par la suite.",
+                    " elle ne pourra pas être modifiée.",
                     min_length=30,
                     max_length=3072,
                     style=TextStyle.paragraph,
@@ -373,7 +373,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
                     label='Raison',
                     placeholder=
                     "Veuillez être assez précis sur la raison de la fermeture de la suggestion," +
-                    " elle ne pourra pas être modifié par la suite.",
+                    " elle sera non modifiable.",
                     max_length=1000,
                     style=TextStyle.paragraph,
                     required=False
