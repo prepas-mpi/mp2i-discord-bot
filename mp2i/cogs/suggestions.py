@@ -357,7 +357,9 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
 
         async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
             logger.error(error)
-            await interaction.followup.send("Quelque chose s'est mal passé lors de la réception !", ephemeral=True)
+            await interaction.followup.send(
+                "Une erreur interne est survenue, veuillez contacter un Administrateur.",
+                ephemeral=True)
 
     class SuggestionsCloseModal(Modal, title="Fermer une suggestion"):
         """
@@ -388,7 +390,9 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
 
         async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
             logger.error(error)
-            await interaction.followup.send("Quelque chose s'est mal passé lors de la réception !", ephemeral=True)
+            await interaction.followup.send(
+                "Une erreur interne est survenue, veuillez contacter un Administrateur.",
+                ephemeral=True)
 
 async def setup(bot) -> None:
     await bot.add_cog(Suggestion(bot))
