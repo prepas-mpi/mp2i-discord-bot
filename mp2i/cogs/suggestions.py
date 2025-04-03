@@ -330,7 +330,6 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
             self.add_item(
                 TextInput(
                     label='Titre de votre suggestion',
-                    placeholder='Interdire pain au chocolat',
                     min_length=10,
                     max_length=80,
                     required=True
@@ -340,7 +339,8 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
                 TextInput(
                     label='Contenu de la suggestion',
                     placeholder=
-                    "Le vocable chocolatine est à préférer quand le contexte le permet, c'est-à-dire dans tous les cas !",
+                    "Veuillez être assez précis sur la description de votre suggestion," +
+                    "elle ne pourra pas être modifié par la suite.",
                     min_length=30,
                     max_length=3072,
                     style=TextStyle.paragraph,
@@ -373,7 +373,8 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
                 TextInput(
                     label='Raison',
                     placeholder=
-                    "Nous trouvons que...",
+                    "Veuillez être assez précis sur la raison de la fermeture de la suggestion," +
+                    " elle ne pourra pas être modifié par la suite.",
                     max_length=1000,
                     style=TextStyle.paragraph,
                     required=False
