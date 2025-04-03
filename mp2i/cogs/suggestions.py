@@ -52,6 +52,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         guild = GuildWrapper(guild)
         channel = guild.suggestion_channel
         if not channel:
+            logger.warning("Guild %s has no suggestion channel", guild.id)
             return
 
         if guild.suggestion_message_id:
@@ -81,21 +82,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         message = await channel.send(embed=embed, view=view)
         guild.suggestion_message_id = message.id
 
-    @Cog.listener("on_interaction")
-    async def send_suggestions_modal(self, interaction: discord.Interaction) -> None:
-        """
-        Send a modal to submit a suggestion.
-
-        Parameters
-        ----------
-        interaction : discord.Interaction
-            The interaction that triggered the event
-        """
-        if not ("custom_id" in interaction.data.keys()) or interaction.data["custom_id"] != "suggestion:proposal":
-            return
-        await interaction.response.send_modal(self.SuggestionsModal(self, interaction.channel))
-
-    async def make_suggestion(self, title, content, channel, user) -> None:
+    async def __make_suggestion(self, title, content, guild, user) -> None:
         """
         Create suggestion message, add reactions and then create a thread.
 
@@ -105,11 +92,16 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
             Suggestion's title
         content : str
             Suggestion's content
-        channel : discord.TextChannel
-            Channel where the suggestion is sent
         user : discord.User
             User who made the suggestion
         """
+        guild = GuildWrapper(guild)
+        if not guild:
+            logger.warning("Guild %s not found", guild.id)
+            return
+        if not guild.suggestion_channel:
+            logger.warning("Guild %s has no suggestion channel", guild.id)
+            return
         embed = discord.Embed(
             title=title,
             description=content,
@@ -121,11 +113,11 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
             embed.set_author(name=user.name)
         embed.set_footer(text=f"\uD83D\uDD51 Suggestion non-traitée")
         embed.timestamp = datetime.now()
-        msg = await channel.send(embed=embed)
+        msg = await guild.suggestion_channel.send(embed=embed)
         try:
             await msg.add_reaction("✅")
             await msg.add_reaction("❌")
-            thread = await msg.channel.create_thread(
+            thread = await guild.suggestion_channel.create_thread(
                 name=title, message=msg
             )
             await thread.add_user(user)
@@ -142,9 +134,9 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
                 state=self.State.OPEN.value,
             )
         )
-        await self.__send_suggestions_process(msg.channel)
+        await self.__send_suggestions_process(guild)
 
-    async def finish_suggestion(self, response: Webhook, thread: Thread, new_state: State, staff: int, reason: Optional[str]) -> None:
+    async def __finish_suggestion(self, response: Webhook, thread: Thread, new_state: State, staff: int, reason: Optional[str]) -> None:
         """
         Close a suggestion
 
@@ -226,6 +218,24 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         await thread.edit(locked=True, archived=True)
 
 
+    @Cog.listener("on_interaction")
+    async def send_suggestions_modal(self, interaction: discord.Interaction) -> None:
+        """
+        Send a modal to submit a suggestion.
+
+        Parameters
+        ----------
+        interaction : discord.Interaction
+            The interaction that triggered the event
+        """
+        if not ("custom_id" in interaction.data.keys()) or interaction.data["custom_id"] != "suggestion:proposal":
+            return
+        await interaction.response.send_modal(
+            self.SuggestionsModal(
+                lambda title, content: self.__make_suggestion(title, content, interaction.guild, interaction.user)
+                )
+        )
+
     @Cog.listener("on_message_delete")
     async def on_message_delete(self, message) -> None:
         """
@@ -272,7 +282,16 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
             await ctx.send("Vous devez être dans le fil d'une suggestion.", ephemeral=True)
             return
         thread: Thread = ctx.channel
-        await ctx.interaction.response.send_modal(self.SuggestionsCloseModal(self, thread, self.State.from_str(state)))
+        await ctx.interaction.response.send_modal(
+            self.SuggestionsCloseModal(
+            lambda interaction, reason: self.__finish_suggestion(
+                interaction,
+                thread,
+                self.State.from_str(state),
+                ctx.author.id,
+                reason)
+            )
+        )
 
     async def __retrieve_message_url(self, guild, suggestion):
         """
@@ -352,10 +371,9 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         Modal to submit a suggestion
         """
 
-        def __init__(self, suggestion, channel):
+        def __init__(self, make_suggestion):
             super().__init__()
-            self.suggestion = suggestion
-            self.channel = channel
+            self.make_suggestion = make_suggestion
             self.add_item(
                 TextInput(
                     label='Titre de votre suggestion',
@@ -381,7 +399,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         async def on_submit(self, interaction: discord.Interaction):
             title = self.children[0].value
             content = self.children[1].value
-            await self.suggestion.make_suggestion(title, content, self.channel, interaction.user)
+            await self.make_suggestion(title, content)
             await interaction.followup.send("Votre suggestion a bien été envoyée !", ephemeral=True)
 
         async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
@@ -395,11 +413,9 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         Modal to close a suggestion
         """
 
-        def __init__(self, suggestion, thread, state):
+        def __init__(self, finish_suggestion):
             super().__init__()
-            self.suggestion = suggestion
-            self.thread = thread
-            self.state = state
+            self.finish_suggestion = finish_suggestion
             self.add_item(
                 TextInput(
                     label='Raison',
@@ -415,7 +431,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         @defer(ephemeral=True)
         async def on_submit(self, interaction: discord.Interaction):
             reason = self.children[0].value
-            await self.suggestion.finish_suggestion(interaction.followup, self.thread, self.state, interaction.user.id, reason)
+            await self.finish_suggestion(interaction.followup, reason)
 
         async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
             logger.error(error)
