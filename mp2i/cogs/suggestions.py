@@ -177,7 +177,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         message: Optional[discord.Message] = await thread.parent.fetch_message(suggestion.message_id)
         if not message:
             await response.send(
-                "Aucun message correspondant à cette suggestion n'a pas été trouvé.", ephemeral=True
+                "Aucun message correspondant à cette suggestion n'a été trouvé.", ephemeral=True
             )
             return
         content = f"<@{suggestion.author_id}>, votre suggestion a été "
