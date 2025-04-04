@@ -40,7 +40,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         def from_str(cls, value: str):
             return cls(value)
 
-    async def __send_suggestions_process(self, guild) -> None:
+    async def _send_suggestions_process(self, guild) -> None:
         """
         Display suggestions process.
 
@@ -82,7 +82,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         message = await channel.send(embed=embed, view=view)
         guild.suggestion_message_id = message.id
 
-    async def __make_suggestion(self, title, content, guild, user) -> None:
+    async def _make_suggestion(self, title, content, guild, user) -> None:
         """
         Create suggestion message, add reactions and then create a thread.
 
@@ -134,9 +134,9 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
                 state=self.State.OPEN.value,
             )
         )
-        await self.__send_suggestions_process(guild)
+        await self._send_suggestions_process(guild)
 
-    async def __finish_suggestion(self, response: Webhook, thread: Thread, new_state: State, staff: int, reason: Optional[str]) -> None:
+    async def _finish_suggestion(self, response: Webhook, thread: Thread, new_state: State, staff: int, reason: Optional[str]) -> None:
         """
         Close a suggestion
 
@@ -201,7 +201,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         if reason:
             embed.description = f"{embed.description}\n\n\uD83D\uDCDD **Réponse de l'équipe**\n{reason}"
             content += " Vous retrouverez la raison de cette décision dans le message suivant :" + \
-                f" {await self.__retrieve_message_url(thread.guild, suggestion)}."
+                f" {await self._retrieve_message_url(thread.guild, suggestion)}."
         await thread.send(content)
         await message.edit(embed=embed)
         await message.clear_reactions()
@@ -232,7 +232,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
             return
         await interaction.response.send_modal(
             self.SuggestionsModal(
-                lambda title, content: self.__make_suggestion(title, content, interaction.guild, interaction.user)
+                lambda title, content: self._make_suggestion(title, content, interaction.guild, interaction.user)
                 )
         )
 
@@ -262,7 +262,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
             await ctx.send("Aucun salon de suggestions n'a été défini.", ephemeral=True)
             return
 
-        await self.__send_suggestions_process(guild)
+        await self._send_suggestions_process(guild)
         await ctx.send("Le message de création de suggestions a été créé.", ephemeral=True)
 
     @hybrid_command(name="close")
@@ -284,7 +284,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
         thread: Thread = ctx.channel
         await ctx.interaction.response.send_modal(
             self.SuggestionsCloseModal(
-            lambda interaction, reason: self.__finish_suggestion(
+            lambda interaction, reason: self._finish_suggestion(
                 interaction,
                 thread,
                 self.State.from_str(state),
@@ -293,7 +293,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
             )
         )
 
-    async def __retrieve_message_url(self, guild, suggestion):
+    async def _retrieve_message_url(self, guild, suggestion):
         """
         Get a jump URL to the suggestion message
         """
@@ -361,7 +361,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
 
             embed.add_field(
                 name=f"{i+1} - {suggestion.title} le {suggestion.date:%d/%m/%Y}",
-                value=await self.__retrieve_message_url(ctx.guild, suggestion),
+                value=await self._retrieve_message_url(ctx.guild, suggestion),
                 inline=False,
             )
         await ctx.send(embed=embed)
