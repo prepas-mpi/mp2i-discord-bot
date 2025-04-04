@@ -129,7 +129,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
                 date=datetime.now(),
                 guild_id=msg.guild.id,
                 title=title,
-                description=msg.content,
+                description=content,
                 message_id=msg.id,
                 state=self.State.OPEN.value,
             )
