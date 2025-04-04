@@ -250,7 +250,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
     @has_any_role("Administrateur")
     async def create(self, ctx) -> None:
         """
-        Send the proposal suggestion message
+        Envoie le message de création de suggestions
         """
         guild = ctx.guild
         if not guild:
@@ -276,7 +276,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
     )
     async def close(self, ctx, state: str) -> None:
         """
-        Send a modal to close a suggestion
+        Envoie d'un formulaire pour fermer une suggestion.
         """
         if not isinstance(ctx.channel, Thread):
             await ctx.send("Vous devez être dans le fil d'une suggestion.", ephemeral=True)
@@ -322,7 +322,7 @@ class Suggestion(GroupCog, group_name="suggestions", description="Gestion des su
     )
     async def list(self, ctx, state: str) -> None:
         """
-        Display suggestions list
+        Affiche la liste des suggestions
 
         Parameters
         ----------
