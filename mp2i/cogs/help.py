@@ -68,7 +68,19 @@ class Help(Cog):
             except CommandError:
                 return False
 
-        return [c for c in self.bot.commands if await can_run(c)]
+        return [self.Command(c) for c in self.bot.commands if await can_run(c)]
+
+    class Command:
+        """
+        Class to represent a command.
+        """
+
+        def __init__(self, cmd):
+            self.name = ""
+            if isinstance(cmd.cog, discord.ext.commands.GroupCog):
+                self.name += f"{cmd.cog.__cog_group_name__} "
+            self.name += cmd.name
+            self.short_doc = cmd.short_doc
 
 
 async def setup(bot):
