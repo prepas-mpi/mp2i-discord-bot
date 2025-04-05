@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from math import ceil
 
 import discord
 from discord.ext.commands import Cog
@@ -12,6 +13,7 @@ from mp2i.wrappers.guild import GuildWrapper
 
 logger = logging.getLogger(__name__)
 
+MAX_MESSAGE_LENGTH = 1020 # Can not exceed 1024
 
 class EventsCog(Cog):
     def __init__(self, bot):
@@ -109,18 +111,29 @@ class EventsCog(Cog):
         if msg.channel == guild.admin_channel or msg.author.bot:
             return
 
-        embed = discord.Embed(
-            title="Message supprimé",
-            colour=0xED0010,
-            timestamp=datetime.now(),
-        )
-        embed.add_field(name="Auteur", value=msg.author.mention)
-        embed.add_field(name="Salon", value=msg.channel.mention)
-        embed.add_field(
-            name="Message original", value=f">>> {msg.content}", inline=False
-        )
-        embed.set_footer(text=self.bot.user.name)
-        await guild.log_channel.send(embed=embed)
+        nb_parts = ceil(len(msg.content) / MAX_MESSAGE_LENGTH)
+        for part in range(0, nb_parts):
+            begin = part * MAX_MESSAGE_LENGTH
+            message_content = msg.content[begin : begin + MAX_MESSAGE_LENGTH]
+            embed = discord.Embed(
+                title="Message supprimé",
+                colour=0xED0010,
+                timestamp=datetime.now(),
+            )
+            embed.add_field(name="Auteur", value=msg.author.mention)
+            embed.add_field(name="Salon", value=msg.channel.mention)
+            if nb_parts > 1:
+                embed.add_field(
+                    name="Partie",
+                    value=f"{part + 1}/{nb_parts}"
+                )
+            embed.add_field(
+                name="Message original",
+                value=f">>> {message_content}",
+                inline=False
+            )
+            embed.set_footer(text=self.bot.user.name)
+            await guild.log_channel.send(embed=embed)
 
     @Cog.listener()
     async def on_message_edit(self, before, after) -> None:
@@ -136,18 +149,32 @@ class EventsCog(Cog):
         if before.channel == guild.admin_channel or before.author.bot:
             return
 
-        embed = discord.Embed(
-            title="Message modifié",
-            colour=0x6DD7FF,
-            timestamp=datetime.now(),
-        )
-        embed.add_field(name="Auteur", value=before.author.mention)
-        embed.add_field(name="Lien du nouveau message", value=after.jump_url)
-        embed.add_field(
-            name="Message original", value=f">>> {before.content}", inline=False
-        )
-        embed.set_footer(text=self.bot.user.name)
-        await log_chan.send(embed=embed)
+        nb_parts = ceil(len(before.content) / MAX_MESSAGE_LENGTH)
+        for part in range(0, nb_parts):
+            begin = part * MAX_MESSAGE_LENGTH
+            message_content = before.content[begin: begin + MAX_MESSAGE_LENGTH]
+            embed = discord.Embed(
+                title="Message modifié",
+                colour=0x6DD7FF,
+                timestamp=datetime.now(),
+            )
+            embed.add_field(name="Auteur", value=before.author.mention)
+            embed.add_field(
+                name="Lien du nouveau message",
+                value=after.jump_url
+            )
+            if nb_parts > 1:
+                embed.add_field(
+                    name="Partie",
+                    value=f"{part + 1}/{nb_parts}"
+                )
+            embed.add_field(
+                name="Message original",
+                value=f">>> {message_content}",
+                inline=False
+            )
+            embed.set_footer(text=self.bot.user.name)
+            await log_chan.send(embed=embed)
 
 
 async def setup(bot) -> None:
