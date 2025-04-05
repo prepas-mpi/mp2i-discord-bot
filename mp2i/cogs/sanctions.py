@@ -13,7 +13,7 @@ from sqlalchemy import insert, select, delete
 from mp2i.utils import database
 from mp2i.models import SanctionModel
 from mp2i.wrappers.guild import GuildWrapper
-from mp2i.utils.discord import has_any_role, interaction_has_any_role
+from mp2i.utils.discord import has_any_role
 from mp2i.wrappers.member import MemberWrapper
 
 logger = logging.getLogger(__name__)
@@ -32,7 +32,7 @@ class Sanction(Cog):
             type=AppCommandType.user
         )
         ctx_menu.guild_only = True
-        ctx_menu.checks.append(interaction_has_any_role("Modérateur", "Administrateur").predicate)
+        ctx_menu.checks.append(has_any_role("Modérateur", "Administrateur").predicate)
         self.bot.tree.add_command(ctx_menu)
 
     def __register_sanction_in_database(

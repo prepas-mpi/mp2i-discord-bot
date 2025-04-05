@@ -85,12 +85,6 @@ class GuildWrapper:
         return self.guild.get_channel(self.config.channels.sanctions)
 
     @cached_property
-    def suggestion_channel(self) -> Optional[discord.TextChannel]:
-        if not self.config:
-            return None
-        return self.guild.get_channel(self.config.channels.suggestion)
-
-    @cached_property
     def website_channel(self) -> Optional[discord.TextChannel]:
         if not self.config:
             return None
@@ -109,3 +103,17 @@ class GuildWrapper:
     @roles_message_id.setter
     def roles_message_id(self, message_id: Optional[int]):
         self.update(roles_message_id=message_id)
+
+    @cached_property
+    def suggestion_channel(self) -> Optional[discord.TextChannel]:
+        if not self.config:
+            return None
+        return self.guild.get_channel(self.config.channels.suggestion)
+
+    @property
+    def suggestion_message_id(self) -> Optional[int]:
+        return self.__model.suggestion_message_id
+
+    @suggestion_message_id.setter
+    def suggestion_message_id(self, message_id: Optional[int]):
+        self.update(suggestion_message_id=message_id)
