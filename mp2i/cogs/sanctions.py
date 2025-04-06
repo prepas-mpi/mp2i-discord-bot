@@ -400,12 +400,16 @@ class Sanction(Cog):
 
         # Doit être étrangement avant la condition de TO sinon ne s'applique pas
         elif entry.action == AuditLogAction.member_update and (
+            hasattr(entry.before, "timed_out_until") and
+            hasattr(entry.after, "timed_out_until") and
             entry.before.timed_out_until and not entry.after.timed_out_until
         ):
             insert_in_database("unto", None)
             await handle_log_unto(user, staff)
 
         elif entry.action == AuditLogAction.member_update and (
+            hasattr(entry.before, "timed_out_until") and
+            hasattr(entry.after, "timed_out_until") and
             not entry.before.timed_out_until
             and entry.after.timed_out_until
             or entry.before.timed_out_until
