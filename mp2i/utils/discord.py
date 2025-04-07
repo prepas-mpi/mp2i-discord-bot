@@ -67,7 +67,7 @@ class EmbedPaginator(discord.ui.View):
         total_pages = len(content_body) // nb_by_pages + (1 if len(content_body) % nb_by_pages != 0 else 0)
         if total_pages == 0:
             total_pages = 1
-        for index, i in enumerate(range(0, total_pages)):
+        for index, i in enumerate(range(0, total_pages * nb_by_pages, nb_by_pages)):
             embed = discord.Embed(
             title=title,
             colour=colour,

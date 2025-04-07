@@ -149,7 +149,7 @@ class School(Cog):
             Choice(name="École d'ingénieur", value="engineering"),
         ]
     )
-    #@defer(ephemeral=False)
+    @defer(ephemeral=False)
     async def members(self, ctx, type: str, school: str):
         """
         Affiche les étudiants d'une école donnée.
@@ -179,7 +179,7 @@ class School(Cog):
         for member in students:
             content_body.append(f"- `{member.name}`・{member.mention}\n")
 
-        random.shuffle(content_body)
+        content_body = random.sample(content_body, len(content_body))
         embed = EmbedPaginator(
             title=f"Liste des étudiants à {school}",
             colour=0xFF66FF,
