@@ -1,5 +1,7 @@
 import logging
 from functools import wraps
+from typing import List
+from datetime import datetime
 
 import discord
 from discord.ext.commands.errors import NoPrivateMessage, MissingAnyRole
@@ -50,3 +52,50 @@ def has_any_role(*items: str):
         raise MissingAnyRole(list(items))
 
     return check(predicate)
+
+class EmbedPaginator(discord.ui.View):
+    """
+    Class to create an embed paginator.
+    """
+
+    def __init__(self, title : str, colour : str, content : List[str], nb_by_pages : int, timestamp : datetime = datetime.now(), timeout: int = 60):
+        super().__init__(timeout=timeout)
+        self.current_page = 0
+        self.pages = []
+        total_pages = len(content) // nb_by_pages + (1 if len(content) % nb_by_pages != 0 else 0)
+        for index, i in enumerate(range(0, len(content), nb_by_pages)):
+            embed = discord.Embed(
+            title=title,
+            colour=colour,
+            timestamp=timestamp,
+            description="\n".join(content[i:i + nb_by_pages])
+            )
+            embed.set_footer(text=f"Page {index + 1} sur {total_pages}")
+            self.pages.append(embed)
+        
+    def update_buttons(self):
+        self.previous.disabled = self.current == 0
+        self.next.disabled = self.current == len(self.pages) - 1
+
+    @discord.ui.button(label="◀", style=discord.ButtonStyle.secondary, custom_id="prev")
+    async def previous(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.current_page -= 1
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.pages[self.current_page], view=self)
+
+    @discord.ui.button(label="▶", style=discord.ButtonStyle.secondary, custom_id="next")
+    async def next(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.current_page += 1
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.pages[self.current_page], view=self)
+
+    async def send(self, ctx: discord.Interaction | discord.ext.commands.Context):
+        """
+        Sends the paginated embed to the given context.
+        """
+        self.update_buttons()
+        if isinstance(ctx, discord.Interaction):
+            await ctx.response.send_message(embed=self.pages[self.current_page], view=self)
+        else:
+            await ctx.send(embed=self.pages[self.current_page], view=self)
+    
