@@ -39,7 +39,9 @@ def has_any_role(*items: str):
 
         # ctx.guild is None doesn't narrow ctx.author to Member
         guild = GuildWrapper(ctx.guild)
-        member = ctx.author if isinstance(ctx.author, discord.Member) else ctx.user
+        member = ctx.user if isinstance(ctx, discord.Interaction) else ctx.author
+        if not isinstance(member, discord.Member):
+            raise NoPrivateMessage()
         roles_id = {role.id for role in member.roles}
         for item in items:
             if (role := guild.get_role_by_qualifier(item)) is None:
