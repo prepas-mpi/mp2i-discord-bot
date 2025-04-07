@@ -60,8 +60,12 @@ class EmbedPaginator(discord.ui.View):
     Class to create an embed paginator.
     """
 
-    def __init__(self, title: str, colour: str, content_header: str, content_body: List[str], nb_by_pages: int, footer: str, author_id: int, timestamp: datetime = datetime.now(), timeout: int = 60):
+    def __init__(self, title: str, colour: discord.Colour, content_header: str, content_body: List[str], nb_by_pages: int, footer: str, author_id: int, timestamp: datetime = None, timeout: int = 60):
         super().__init__(timeout=timeout)
+
+        if timestamp is None:
+            timestamp = datetime.now()
+
         self.current_page = 0
         self.pages = []
         self.author_id = author_id
