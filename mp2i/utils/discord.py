@@ -65,7 +65,9 @@ class EmbedPaginator(discord.ui.View):
         self.current_page = 0
         self.pages = []
         total_pages = len(content_body) // nb_by_pages + (1 if len(content_body) % nb_by_pages != 0 else 0)
-        for index, i in enumerate(range(0, len(content_body), nb_by_pages)):
+        if total_pages == 0:
+            total_pages = 1
+        for index, i in enumerate(range(0, total_pages)):
             embed = discord.Embed(
             title=title,
             colour=colour,
@@ -77,7 +79,6 @@ class EmbedPaginator(discord.ui.View):
             else:
                 embed.set_footer(text=footer)
             self.pages.append(embed)
-        
         if total_pages == 1:
             self.remove_item(self.previous)
             self.remove_item(self.next)
