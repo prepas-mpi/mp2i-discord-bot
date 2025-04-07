@@ -60,19 +60,20 @@ class EmbedPaginator(discord.ui.View):
     Class to create an embed paginator.
     """
 
-    def __init__(self, title : str, colour : str, content_header : str, content_body : List[str], nb_by_pages : int, footer : str, timestamp : datetime = datetime.now(), timeout: int = 60):
+    def __init__(self, title: str, colour: str, content_header: str, content_body: List[str], nb_by_pages: int, footer: str, author_id: int, timestamp: datetime = datetime.now(), timeout: int = 60):
         super().__init__(timeout=timeout)
         self.current_page = 0
         self.pages = []
+        self.author_id = author_id
         total_pages = len(content_body) // nb_by_pages + (1 if len(content_body) % nb_by_pages != 0 else 0)
         if total_pages == 0:
             total_pages = 1
         for index, i in enumerate(range(0, total_pages * nb_by_pages, nb_by_pages)):
             embed = discord.Embed(
-            title=title,
-            colour=colour,
-            timestamp=timestamp,
-            description=content_header + "".join(content_body[i:i + nb_by_pages])
+                title=title,
+                colour=colour,
+                timestamp=timestamp,
+                description=content_header + "".join(content_body[i:i + nb_by_pages])
             )
             if total_pages > 1:
                 embed.set_footer(text=f"{footer} - Page {index + 1} sur {total_pages}")
@@ -88,6 +89,15 @@ class EmbedPaginator(discord.ui.View):
     def update_buttons(self):
         self.previous.disabled = self.current_page == 0
         self.next.disabled = self.current_page == self.total_pages - 1
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        """
+        Ensures only the command author can interact with the buttons.
+        """
+        if interaction.user.id != self.author_id:
+            await interaction.response.send_message("Vous ne pouvez pas interagir avec cette pagination.", ephemeral=True)
+            return False
+        return True
 
     @discord.ui.button(label="◀", style=discord.ButtonStyle.secondary, custom_id="prev")
     async def previous(self, interaction: discord.Interaction, button: discord.ui.Button):

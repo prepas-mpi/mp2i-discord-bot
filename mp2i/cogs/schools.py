@@ -185,9 +185,9 @@ class School(Cog):
             colour=0xFF66FF,
             content_header=content_header,
             content_body=content_body,
-            nb_by_pages=2,
+            nb_by_pages=15,
             footer=self.bot.user.name,
-            timestamp=datetime.now(),
+            author_id=ctx.author.id,
             timeout=300,
         )
         await embed.send(ctx)

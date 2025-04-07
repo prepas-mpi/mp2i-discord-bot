@@ -216,7 +216,7 @@ class Sanction(Cog):
             content_body=content_body,
             nb_by_pages=5,
             footer=self.bot.user.name,
-            timestamp=datetime.now(),
+            author_id=ctx.author.id,
             timeout=500,
         )
         await embed.send(ctx)
