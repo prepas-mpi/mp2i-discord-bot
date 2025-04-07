@@ -14,6 +14,7 @@ from mp2i import STATIC_DIR
 from mp2i.wrappers.member import MemberWrapper
 from mp2i.wrappers.guild import GuildWrapper
 from mp2i.utils.discord import defer, has_any_role, EmbedPaginator
+import random
 
 SCHOOL_REGEX = re.compile(r"^.+[|@] *(?P<prepa>.*)$")
 
@@ -178,6 +179,7 @@ class School(Cog):
         for member in students:
             content_body.append(f"- `{member.name}`・{member.mention}\n")
 
+        random.shuffle(content_body)
         embed = EmbedPaginator(
             title=f"Liste des étudiants à {school}",
             colour=0xFF66FF,
@@ -186,7 +188,7 @@ class School(Cog):
             nb_by_pages=2,
             footer=self.bot.user.name,
             timestamp=datetime.now(),
-            timeout=60,
+            timeout=300,
         )
         await embed.send(ctx)
 

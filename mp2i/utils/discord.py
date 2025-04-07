@@ -72,12 +72,21 @@ class EmbedPaginator(discord.ui.View):
             timestamp=timestamp,
             description=content_header + "".join(content_body[i:i + nb_by_pages])
             )
-            embed.set_footer(text=f"Page {index + 1} sur {total_pages}")
+            if total_pages > 1:
+                embed.set_footer(text=f"{footer} - Page {index + 1} sur {total_pages}")
+            else:
+                embed.set_footer(text=footer)
             self.pages.append(embed)
         
+        if total_pages == 1:
+            self.remove_item(self.previous)
+            self.remove_item(self.next)
+
+        self.total_pages = total_pages
+
     def update_buttons(self):
         self.previous.disabled = self.current_page == 0
-        self.next.disabled = self.current_page == len(self.pages) - 1
+        self.next.disabled = self.current_page == self.total_pages - 1
 
     @discord.ui.button(label="◀", style=discord.ButtonStyle.secondary, custom_id="prev")
     async def previous(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -100,4 +109,3 @@ class EmbedPaginator(discord.ui.View):
             await ctx.response.send_message(embed=self.pages[self.current_page], view=self)
         else:
             await ctx.reply(embed=self.pages[self.current_page], view=self)
-    
