@@ -13,7 +13,7 @@ from sqlalchemy import insert, select, delete
 from mp2i.utils import database
 from mp2i.models import SanctionModel
 from mp2i.wrappers.guild import GuildWrapper
-from mp2i.utils.discord import has_any_role
+from mp2i.utils.discord import has_any_role, EmbedPaginator
 from mp2i.wrappers.member import MemberWrapper
 
 logger = logging.getLogger(__name__)
@@ -187,10 +187,11 @@ class Sanction(Cog):
             title = "Liste des sanctions du serveur"
 
         sanctions = database.execute(request).scalars().all()
-        content = f"**Nombre de sanctions :** {len(sanctions)}\n\n"
-
+        content_header = f"**Nombre de sanctions :** {len(sanctions)}\n\n"
+        
+        content_body = []
         for sanction in sanctions:
-            content += f"**{sanction.id}** ━ Le {sanction.date:%d/%m/%Y à %H:%M}\n"
+            content = f"**{sanction.id}** ━ Le {sanction.date:%d/%m/%Y à %H:%M}\n"
             content += f"> **Type :** {sanction.type}\n"
             if not member:
                 content += f"> **Membre :** <@{sanction.to_id}>\n"
@@ -205,14 +206,20 @@ class Sanction(Cog):
                 reason = sanction.reason.replace("\n", "\n> ")
                 content += f"> **Raison :** {reason}\n"
             content += "\n"
+            content_body.append(content)
 
-        embed = discord.Embed(
+        
+        embed = EmbedPaginator(
             title=title,
-            description=content,
             colour=0xFF00FF,
-            timestamp=datetime.now()
+            content_header=content_header,
+            content_body=content_body,
+            nb_by_pages=5,
+            footer=self.bot.user.name,
+            author_id=ctx.author.id,
+            timeout=500,
         )
-        await ctx.send(embed=embed)
+        await embed.send(ctx)
 
     @hybrid_command(name="rmsanction")
     @guild_only()

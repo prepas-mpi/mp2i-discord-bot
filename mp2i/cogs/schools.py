@@ -13,7 +13,8 @@ from discord.app_commands import autocomplete, Choice, choices
 from mp2i import STATIC_DIR
 from mp2i.wrappers.member import MemberWrapper
 from mp2i.wrappers.guild import GuildWrapper
-from mp2i.utils.discord import defer, has_any_role
+from mp2i.utils.discord import defer, has_any_role, EmbedPaginator
+import random
 
 SCHOOL_REGEX = re.compile(r"^.+[|@] *(?P<prepa>.*)$")
 
@@ -170,21 +171,26 @@ class School(Cog):
             return
         referents = [m for m in students if m.get_role(referent_role.id)]
 
-        content = f"Nombre d'étudiants : {len(students)}\n"
+        content_header = f"Nombre d'étudiants : {len(students)}\n"
         for referent in referents:
             status = guild.get_emoji_by_name(f"{referent.status}")
-            content += f"Référent : `{referent.name}`・{referent.mention} {status}\n\n"
+            content_header += f"Référent : `{referent.name}`・{referent.mention} {status}\n\n"
+        content_body = []
         for member in students:
-            content += f"- `{member.name}`・{member.mention}\n"
+            content_body.append(f"- `{member.name}`・{member.mention}\n")
 
-        embed = discord.Embed(
+        content_body = random.sample(content_body, len(content_body))
+        embed = EmbedPaginator(
             title=f"Liste des étudiants à {school}",
             colour=0xFF66FF,
-            description=content,
-            timestamp=datetime.now(),
+            content_header=content_header,
+            content_body=content_body,
+            nb_by_pages=15,
+            footer=self.bot.user.name,
+            author_id=ctx.author.id,
+            timeout=300,
         )
-        embed.set_footer(text=self.bot.user.name)
-        await ctx.reply(embed=embed)
+        await embed.send(ctx)
 
     @hybrid_command(name="referents")
     @guild_only()
