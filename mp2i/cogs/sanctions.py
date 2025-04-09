@@ -168,24 +168,20 @@ class Sanction(Cog):
         member : Optional[discord.Member]
             Le membre dont on veut lister les sanctions.
         """
-        if member:
-            target = MemberWrapper(member)
-            request = select(SanctionModel).where(
-                SanctionModel.to_id == member.id,
+        request = select(SanctionModel).where(
                 SanctionModel.guild_id == ctx.guild.id,
                 True if type == "*" else SanctionModel.type == type,
             )
+        if member:
+            target = MemberWrapper(member)
+            request = request.where(SanctionModel.to_id == member.id,)
             try:
                 title = f"Liste des sanctions de {target.name}"
             except AttributeError:
                 title = f"Liste des sanctions de {target.cached_name}"
         else:
-            request = select(SanctionModel).where(
-                SanctionModel.guild_id == ctx.guild.id,
-                True if type == "*" else SanctionModel.type == type,
-            )
             title = "Liste des sanctions du serveur"
-
+        request = request.order_by(SanctionModel.id.desc())
         sanctions = database.execute(request).scalars().all()
         content_header = f"**Nombre de sanctions :** {len(sanctions)}\n\n"
         
