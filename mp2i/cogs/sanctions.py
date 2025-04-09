@@ -174,7 +174,7 @@ class Sanction(Cog):
                 SanctionModel.to_id == member.id,
                 SanctionModel.guild_id == ctx.guild.id,
                 True if type == "*" else SanctionModel.type == type,
-            )
+            ).order_by(SanctionModel.id.desc())
             try:
                 title = f"Liste des sanctions de {target.name}"
             except AttributeError:
@@ -183,10 +183,10 @@ class Sanction(Cog):
             request = select(SanctionModel).where(
                 SanctionModel.guild_id == ctx.guild.id,
                 True if type == "*" else SanctionModel.type == type,
-            )
+            ).order_by(SanctionModel.id.desc())
             title = "Liste des sanctions du serveur"
 
-        sanctions = database.execute(request.order_by(SanctionModel.id.desc())).scalars().all()
+        sanctions = database.execute(request).scalars().all()
         content_header = f"**Nombre de sanctions :** {len(sanctions)}\n\n"
         
         content_body = []
