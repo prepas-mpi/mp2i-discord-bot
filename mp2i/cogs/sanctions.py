@@ -186,7 +186,7 @@ class Sanction(Cog):
             )
             title = "Liste des sanctions du serveur"
 
-        sanctions = database.execute(request).scalars().all()
+        sanctions = database.execute(request.order_by(SanctionModel.id.desc())).scalars().all()
         content_header = f"**Nombre de sanctions :** {len(sanctions)}\n\n"
         
         content_body = []
