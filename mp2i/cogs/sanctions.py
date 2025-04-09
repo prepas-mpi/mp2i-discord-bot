@@ -8,7 +8,7 @@ from discord import AuditLogAction, app_commands, TextStyle, AppCommandType
 from discord.ext.commands import Cog, hybrid_command, guild_only
 from discord.app_commands import Choice, choices
 from discord.ui import Modal, TextInput
-from sqlalchemy import insert, select, delete
+from sqlalchemy import insert, select, delete, update
 
 from mp2i.utils import database
 from mp2i.models import SanctionModel
@@ -240,6 +240,56 @@ class Sanction(Cog):
         if not guild.sanctions_log_channel:
             return
         await guild.sanctions_log_channel.send(message)
+
+    @hybrid_command(name="editsanction")
+    @guild_only()
+    @has_any_role("Modérateur", "Administrateur")
+    async def editsanction(self, ctx, id: int, send_dm: bool, reason: str) -> None:
+        """
+        Modifie la raison d'une sanction.
+
+        Parameters
+        ----------
+        id : int
+            L'identifiant de la sanction à modifier.
+        send_dm : bool
+            Vrai si la personne sanctionnée reçoit la nouvelle raison.
+        reason : str
+            La nouvelle raison.
+        """
+        sanctions = database.execute(
+            select(SanctionModel).where(SanctionModel.id == id)
+        ).scalars().all()
+        if len(sanctions) == 0:
+            await ctx.send("Aucune sanction n'a été trouvée", ephemeral=True)
+            return
+        database.execute(
+            update(SanctionModel)
+            .where(SanctionModel.id == id)
+            .values(
+                reason=reason,
+            )
+        )
+        sanction = sanctions[0]
+        old_reason = "\n".join(["- " + line for line in sanction.reason.splitlines()])
+        new_reason = "\n".join(["+ " + line for line in reason.splitlines()])
+        message = f"La sanction d'identifiant `{id}` a été modifiée.\n```diff\n{old_reason}\n{new_reason}\n```"
+        if send_dm:
+            user = None
+            try:
+                user = await self.bot.fetch_user(sanction.to_id)
+                try:
+                    await user.send(message)
+                    message = message + "Une notification a bien été envoyée à la personne sanctionnée."
+                except discord.Forbidden:
+                    message = message + "Une notification n'a pas pu être envoyée à la personne sanctionnée."
+            except discord.NotFound:
+                logger.error(f"Failed to fetch user {sanction.to_id} ! Cannot log their sanction.")
+                message = message + "Une notification n'a pas pu être envoyée à la personne sanctionnée."
+        await ctx.send(message, ephemeral=True)
+        guild = GuildWrapper(ctx.guild)
+        if guild.sanctions_log_channel:
+            await guild.sanctions_log_channel.send(message)
 
     @Cog.listener("on_audit_log_entry_create")
     @guild_only()
