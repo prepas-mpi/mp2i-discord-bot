@@ -271,9 +271,12 @@ class Sanction(Cog):
             )
         )
         sanction = sanctions[0]
-        old_reason = "\n".join(["- " + line for line in sanction.reason.splitlines()])
+        if sanction.reason:
+            old_reason = "\n".join(["- " + line for line in sanction.reason.splitlines()])
+        else:
+            old_reason = ""
         new_reason = "\n".join(["+ " + line for line in reason.splitlines()])
-        message = f"La sanction d'identifiant `{id}` a été modifiée.\n```diff\n{old_reason}\n{new_reason}\n```"
+        message = f"La sanction d'identifiant `{id}` a été modifiée.\n```diff\n{old_reason}\n\n{new_reason}\n```"
         if send_dm:
             user = None
             try:
