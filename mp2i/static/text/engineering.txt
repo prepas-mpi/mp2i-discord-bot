@@ -21,6 +21,7 @@ Double-Licence
 ECAM LaSalle
 ECAM Rennes
 ECAM-EPMI Cergy-Pontoise
+École de l'Air et de l'Espace
 EDHEC
 EFREI Paris
 EIDD Paris
@@ -42,6 +43,7 @@ ENS Rennes
 ENS ULM
 ENSAE Paris
 ENSAI Rennes
+ENSAM Paris
 ENSC Bordeaux
 ENSE3 Grenoble
 ENSEA Cergy
@@ -89,6 +91,7 @@ ESIROI La Réunion
 Esisar Grenoble
 ESITECH
 ESIX Caen
+ESM Saint-Cyr
 ESME
 ESTIA Bidart
 ESTP Cachan
@@ -143,6 +146,7 @@ Phelma Grenoble
 Polytech Angers
 Polytech Annecy-Chambéry
 Polytech Clermont-Ferrand
+Polytech Dijon
 Polytech Grenoble
 Polytech Lille
 Polytech Lyon
