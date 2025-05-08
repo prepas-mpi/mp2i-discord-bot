@@ -40,7 +40,7 @@ ENGEES Strasbourg
 ENS de Lyon
 ENS Paris-Saclay
 ENS Rennes
-ENS ULM
+ENS Ulm
 ENSAE Paris
 ENSAI Rennes
 ENSAM Paris

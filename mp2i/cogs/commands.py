@@ -116,7 +116,7 @@ class Commands(Cog):
         if member.generation > 0:
             embed.add_field(name="Génération", value=member.generation)
         if member.engineering_school is not None:
-            embed.add_field(name="École d'ingénieur", value=member.engineering_school)
+            embed.add_field(name="Poursuite d'études", value=member.engineering_school)
 
         await ctx.send(embed=embed)
 

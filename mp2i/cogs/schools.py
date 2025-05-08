@@ -59,7 +59,7 @@ class School(Cog):
     @choices(
         type=[
             Choice(name="CPGE", value="cpge"),
-            Choice(name="École d'ingénieur", value="engineering"),
+            Choice(name="Poursuite d'études", value="engineering"),
         ]
     )
     async def school_selection(
@@ -70,7 +70,7 @@ class School(Cog):
 
         Parameters
         ----------
-        type : CPGE ou École d'ingénieur
+        type : CPGE ou Poursuite d'études
         school: Le nom de l'école à associer.
         user: Réservé aux Administrateurs et Modérateurs
             L'utilisateur à qui on associe l'école (par défaut, l'auteur de la commande)
@@ -132,7 +132,7 @@ class School(Cog):
                 ephemeral=True,
             )
         elif member.guild_permissions.manage_roles:
-            member.generation = year
+            user.generation = year
             await ctx.reply(
                 f"{user.mention} fait maintenant partie de la génération {year} !",
                 ephemeral=True,
@@ -146,7 +146,7 @@ class School(Cog):
     @choices(
         type=[
             Choice(name="CPGE", value="cpge"),
-            Choice(name="École d'ingénieur", value="engineering"),
+            Choice(name="Poursuite d'études", value="engineering"),
         ]
     )
     @defer(ephemeral=False)
@@ -197,7 +197,7 @@ class School(Cog):
     @choices(
         type=[
             Choice(name="CPGE", value="cpge"),
-            Choice(name="École d'ingénieur", value="engineering"),
+            Choice(name="Poursuite d'études", value="engineering"),
         ]
     )
     @defer()
