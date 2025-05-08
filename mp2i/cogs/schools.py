@@ -132,7 +132,7 @@ class School(Cog):
                 ephemeral=True,
             )
         elif member.guild_permissions.manage_roles:
-            user.generation = year
+            MemberWrapper(user).generation = year
             await ctx.reply(
                 f"{user.mention} fait maintenant partie de la génération {year} !",
                 ephemeral=True,
