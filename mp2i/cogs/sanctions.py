@@ -466,10 +466,10 @@ class Sanction(Cog):
         elif entry.action == AuditLogAction.member_update and (
             hasattr(entry.before, "timed_out_until") and
             hasattr(entry.after, "timed_out_until") and
-            not entry.before.timed_out_until
+            (not entry.before.timed_out_until
             and entry.after.timed_out_until
             or entry.before.timed_out_until
-            and entry.before.timed_out_until < entry.after.timed_out_until
+            and entry.before.timed_out_until < entry.after.timed_out_until)
         ):
             end_of_sanction = entry.after.timed_out_until.timestamp()
             insert_in_database("to", int(ceil(end_of_sanction - datetime.now().timestamp())))
