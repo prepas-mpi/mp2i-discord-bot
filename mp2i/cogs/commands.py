@@ -64,7 +64,7 @@ class Commands(Cog):
         """
         if isinstance(error, errors.RangeError):
             msg = f"Le nombre de messages doit être compris entre 1 et {error.maximum}."
-        await ctx.reply(msg, ephemeral=True)
+            await ctx.reply(msg, ephemeral=True)
 
     @hybrid_command(name="say")
     @guild_only()
