@@ -81,8 +81,8 @@ class MemberWrapper:
                 guild_id=self.guild.id,
                 name=self.member.name,
                 role=qualifier,
-                high_school=None,
-                engineering_school=None,
+                cpge=None,
+                postcpge=None,
                 generation=None,
             )
         )
@@ -117,20 +117,20 @@ class MemberWrapper:
         self.update(profile_color=value)
 
     @property
-    def high_school(self) -> str:
-        return self.__model.high_school
+    def cpge(self) -> int:
+        return self.__model.cpge
 
-    @high_school.setter
-    def high_school(self, value: str) -> None:
-        self.update(high_school=value)
+    @cpge.setter
+    def cpge(self, value: int) -> None:
+        self.update(cpge=value)
 
     @property
-    def engineering_school(self) -> str:
-        return self.__model.engineering_school
+    def postcpge(self) -> int:
+        return self.__model.postcpge
 
-    @engineering_school.setter
-    def engineering_school(self, value: str) -> None:
-        self.update(engineering_school=value)
+    @postcpge.setter
+    def postcpge(self, value: int) -> None:
+        self.update(postcpge=value)
 
     @property
     def generation(self) -> int:

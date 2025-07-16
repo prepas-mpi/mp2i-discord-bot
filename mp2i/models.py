@@ -31,13 +31,53 @@ class MemberModel(Base):
     role: str = Column(String(50), nullable=True)
     messages_count: int = Column(Integer, default=0)
     profile_color: str = Column(String(8), nullable=True)
-    high_school: str = Column(String(50), nullable=True)
-    engineering_school: str = Column(String(50), nullable=True)
+    cpge: int = Column(BigInteger, ForeignKey("cpge.id", ondelete="SET NULL"), nullable=True)
+    postcpge: int = Column(BigInteger, ForeignKey("postcpge.id", ondelete="SET NULL"), nullable=True)
     generation: int = Column(Integer, nullable=True)
 
     def __repr__(self):
         return f"Member(id={self.id}, name={self.name}, role={self.role})"
 
+class SchoolModel(Base):
+    __tablename__ = "schools"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ("referent", "guild"),
+            ("members.id", "members.guild_id"),
+            ondelete="SET NULL",
+            name="schools_referent_guild_fkey",
+        ),
+    )
+    id: int = Column(BigInteger, primary_key=True, autoincrement=True)
+    name: str = Column(String(255), unique=True)
+    desc: str = Column(String(1024), nullable=True)
+    channel: int = Column(BigInteger, nullable=False)
+    colour: int = Column(Integer, nullable=True)
+    guild: int = Column(BigInteger, ForeignKey("guilds.id", ondelete="SET NULL"), nullable=False)
+    referent: int = Column(BigInteger, nullable=True)
+    location: str = Column(String(255))
+    type: str = Column(String(255), nullable=False)
+
+    __mapper_args__ = {
+        "polymorphic_identity": "schools",
+        "polymorphic_on": type
+    }
+    
+class CPGEModel(SchoolModel):
+    __tablename__ = "cpge"
+    id = Column(BigInteger, ForeignKey("schools.id"), primary_key=True)
+
+    __mapper_args__ = {
+        "polymorphic_identity": "CPGE"
+    }
+    
+class PostCPGEModel(SchoolModel):
+    __tablename__ = "postcpge"
+    id = Column(BigInteger, ForeignKey("schools.id"), primary_key=True)
+
+    __mapper_args__ = {
+        "polymorphic_identity": "PostCPGE"
+    }
 
 class SuggestionModel(Base):
     __tablename__ = "suggestions"

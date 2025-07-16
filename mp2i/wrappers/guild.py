@@ -117,3 +117,15 @@ class GuildWrapper:
     @suggestion_message_id.setter
     def suggestion_message_id(self, message_id: Optional[int]):
         self.update(suggestion_message_id=message_id)
+
+    @cached_property
+    def get_cpge_forum(self) -> Optional[discord.ForumChannel]:
+        if not self.config:
+            return None
+        return self.guild.get_channel(self.config.channels.schools.cpge)
+
+    @cached_property
+    def get_postcpge_forum(self) -> Optional[discord.ForumChannel]:
+        if not self.config:
+            return None
+        return self.guild.get_channel(self.config.channels.schools.postcpge)
