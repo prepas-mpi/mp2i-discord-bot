@@ -283,20 +283,6 @@ class School(Cog):
             await ctx.reply("Un établissement avec ce nom existe déjà.")
             return
 
-        # get forum's id
-        forum: Optional[discord.ForumChannel] = None
-        if type == "cpge":
-            forum = guild.get_cpge_forum
-        elif type == "postcpge":
-            forum = guild.get_postcpge_forum
-        else:
-            await ctx.reply("Type d'établissement non reconnu.")
-            return
-
-        if not forum:
-            await ctx.reply("Aucun canal forum trouvé pour créer l'école.")
-            return
-
         await thread.join()
 
         # register school

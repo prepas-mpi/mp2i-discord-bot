@@ -50,12 +50,9 @@ class SchoolModel(Base):
     )
     id: int = Column(BigInteger, primary_key=True, autoincrement=True)
     name: str = Column(String(255), unique=True)
-    desc: str = Column(String(1024), nullable=True)
     channel: int = Column(BigInteger, nullable=False)
-    colour: int = Column(Integer, nullable=True)
     guild: int = Column(BigInteger, ForeignKey("guilds.id", ondelete="SET NULL"), nullable=False)
     referent: int = Column(BigInteger, nullable=True)
-    location: str = Column(String(255))
     type: str = Column(String(255), nullable=False)
 
     __mapper_args__ = {

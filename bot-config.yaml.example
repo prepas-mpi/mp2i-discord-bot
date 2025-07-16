@@ -68,9 +68,6 @@ guilds:
       log: 0
       sanctions: 0
       admin: 0
-      schools:
-        cpge: 0
-        postcpge: 0
 
   939262781629276200:
     name: Prépas MP2I [Test]
