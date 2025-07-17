@@ -1,1 +1,3 @@
-Pour ouvrir un ticket appuyez sur le gros bouton rouge.
+Vous rencontrez un problème sur le serveur ?
+
+N'hésitez pas à créer un ticket en cliquant sur le bouton ci-dessous.
