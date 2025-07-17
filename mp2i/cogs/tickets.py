@@ -19,6 +19,13 @@ class Tickets(Cog):
     @guild_only()
     @has_any_role("Administrateur")
     async def create_ticket_message(self, ctx):
+        """
+        Send an embed with a button to create new tickets
+
+        Parameters
+        ----------
+        ctx: context of the slash command
+        """
         if not isinstance(ctx.channel, discord.TextChannel):
             await ctx.reply("Vous n'êtes pas dans un bon salon.", ephemeral=True)
             return
@@ -42,6 +49,13 @@ class Tickets(Cog):
 
     @Cog.listener("on_interaction")
     async def open_ticket(self, interaction: discord.Interaction):
+        """
+        Create a new ticket
+
+        Parameters
+        ----------
+        interaction: triggered by an interaction with a button
+        """
         if not ("custom_id" in interaction.data.keys()) or interaction.data["custom_id"] != "ticket:open":
             return
 
@@ -106,6 +120,13 @@ class Tickets(Cog):
 
     @Cog.listener("on_interaction")
     async def close_ticket(self, interaction: discord.Interaction):
+        """
+        Close an opened ticket
+
+        Parameters
+        ----------
+        interaction: triggered by an interaction with a button
+        """
         if not ("custom_id" in interaction.data.keys()) or interaction.data["custom_id"] != "ticket:close":
             return
 
