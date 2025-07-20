@@ -24,8 +24,6 @@ from mp2i.utils.school_manager import SchoolManager
 from mp2i.utils.discord import defer, has_any_role, EmbedPaginator
 import random
 
-SCHOOL_REGEX = re.compile(r"^.+[|@] *(?P<prepa>.*)$")
-
 logger = logging.getLogger(__name__)
 
 class School(Cog):
@@ -107,6 +105,8 @@ class School(Cog):
 
         await interaction.response.send_message(f"Attribution d'un référent à {school.name}...")
 
+        referent_symbol: str = "@" if type == "cpge" else "#"
+
         if school.referent:
             await interaction.edit_original_response(content="Suppression de l'ancien référent...")
             old_referent: Optional[Member] = guild.get_member(school.referent)
@@ -116,7 +116,7 @@ class School(Cog):
                 nick: Optional[str] = old_referent.nick
                 if nick:
                     await interaction.edit_original_response(content="Mise à jour du pseudonyme...")
-                    old_referent.nick = nick.replace("@", "|")
+                    old_referent.nick = nick.replace(referent_symbol, "|")
 
         await interaction.edit_original_response(content="Changement dans la base de donnée...")
         school.referent = member.id
@@ -131,9 +131,9 @@ class School(Cog):
         await interaction.edit_original_response(content="Mise à jour du pseudonyme...")
         nick: Optional[str] = guild_member.nick
         if nick:
-            guild_member.nick = nick.replace("|", "@")
+            guild_member.nick = nick.replace("|", referent_symbol)
         else:
-            guild_member.nick = f"{guild_member.name} @ {school.name}"
+            guild_member.nick = f"{guild_member.name} {referent_symbol} {school.name}"
 
         await interaction.edit_original_response(content=f"{guild_member.mention} est maintenant référent de {school.name}")
 
