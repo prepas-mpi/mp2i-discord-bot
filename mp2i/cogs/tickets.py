@@ -73,15 +73,9 @@ class Tickets(Cog):
         
         await interaction.edit_original_response(content="Ajout du staff...")
         
-        admin_role: Optional[discord.Role] = guild.get_role_by_qualifier("Administrateur")
-        mod_role: Optional[discord.Role] = guild.get_role_by_qualifier("Modérateur")
-
-        staff_list: List[discord.Member] = [
-            member for member in guild.members
-            if admin_role and member.get_role(admin_role.id) or
-            mod_role and member.get_role(mod_role.id)
-        ]
-        mentions: str = " ".join([staff.mention for staff in staff_list])
+        role_list: List[Optional[discord.Role]] = [guild.get_role_by_qualifier("Administrateur"),
+                                        guild.get_role_by_qualifier("Modérateur")]
+        mentions: str = " ".join([role.mention for role in role_list if role])
 
         message: discord.Message = await thread.send("(╯°□°)╯︵ ┻━┻")
         await message.edit(content=mentions)
