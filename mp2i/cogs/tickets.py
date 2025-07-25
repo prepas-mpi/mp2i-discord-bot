@@ -156,6 +156,8 @@ class Tickets(Cog):
         name: str = f"[Fermé] {' '.join(thread.name.split(' ')[1:])}"
         
         await thread.edit(name=name, locked=True, archived=True)
+
+        await interaction.edit_original_response(content="Thread archivé")
         
 async def setup(bot) -> None:
     await bot.add_cog(Tickets(bot))
