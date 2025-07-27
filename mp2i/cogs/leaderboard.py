@@ -54,7 +54,6 @@ class Leaderboard(Cog):
         # if first's profil has default colour get
         # their first coloured role's colour
         if colour == 0x0000FF:
-            colour = members[0].member.roles[0].colour
             # reverse to get the top role
             for role in reversed(members[0].member.roles):
                 # discriminate role by its string colour
