@@ -51,7 +51,7 @@ class SchoolModel(Base):
     id: int = Column(BigInteger, primary_key=True, autoincrement=True)
     name: str = Column(String(255), unique=True)
     channel: int = Column(BigInteger, nullable=False)
-    guild: int = Column(BigInteger, ForeignKey("guilds.id", ondelete="SET NULL"), nullable=False)
+    guild: int = Column(BigInteger, ForeignKey("guilds.id", ondelete="RESTRICT"), nullable=False)
     referent: int = Column(BigInteger, nullable=True)
     type: str = Column(String(255), nullable=False)
 
