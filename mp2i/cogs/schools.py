@@ -215,8 +215,6 @@ class School(Cog):
                 .where(PostCPGEModel.guild == guild.id)
                 .order_by(PostCPGEModel.name)
             ).scalars().all()
-            print(self.manager.get_postcpge(guild.guild.id, 1))
-        print(self.manager.postcpge)
 
     @Cog.listener()
     async def on_raw_member_remove(self, raw_event: discord.RawMemberRemoveEvent):
