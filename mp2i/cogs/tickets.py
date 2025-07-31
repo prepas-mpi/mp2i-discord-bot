@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
 from datetime import datetime
 
 import discord
@@ -14,6 +14,8 @@ class Tickets(Cog):
         self.bot = bot
         with open(f"{STATIC_DIR}/text/ticket.md", "r") as file:
             self.open_text = file.read()
+        self.open_tickets: Dict[int, List[discord.Thread]] = {}
+        self.is_setup = False
 
     @hybrid_command(name="create_ticket_message")
     @guild_only()
@@ -61,13 +63,38 @@ class Tickets(Cog):
 
         if not isinstance(interaction.channel, discord.TextChannel) or not interaction.guild:
             return
+
+        # retrieve all open tickets
+        if not self.is_setup:
+            self.open_tickets[interaction.guild.id] = [
+                thread for thread in interaction.channel.threads
+                if thread.name.startswith("[Ouvert]") and
+                not thread.locked and not thread.archived
+            ]
+            self.is_setup = True
+
+        # check if a ticket is already open
+        for thread in self.open_tickets[interaction.guild.id]:
+            # last word of thread's name is user's name
+            if thread.name.split(" ")[-1] == interaction.user.name:
+                await interaction.response.send_message(
+                    f"Vous avez déjà un ticket d'ouvert, accessible ici {thread.jump_url}. " +
+                    "Merci de l'utiliser ou d'attendre que le précédent soit clôturé.",
+                    ephemeral=True
+                )
+                return
+
         guild: GuildWrapper = GuildWrapper(interaction.guild)
 
-        await interaction.response.send_message("Création d'un thread...", ephemeral=True)
+        # create thread
         thread: discord.Thread = await interaction.channel.create_thread(
             name=f"[Ouvert] Ticket de {interaction.user.name}",
             invitable=False
         )
+        self.open_tickets[interaction.guild.id].append(thread)
+
+        # a message is sent after the creation to block button's interaction
+        await interaction.response.send_message("Création d'un thread...", ephemeral=True)
 
         # add staff by ping in an edited message
         
@@ -156,6 +183,13 @@ class Tickets(Cog):
         name: str = f"[Fermé] {' '.join(thread.name.split(' ')[1:])}"
         
         await thread.edit(name=name, locked=True, archived=True)
+
+        # remove from cache if it has been setup
+        if self.is_setup:
+            self.open_tickets[interaction.guild.id] = [
+                cache for cache in self.open_tickets[interaction.guild.id]
+                if cache.id != thread.id
+            ]
 
         await interaction.edit_original_response(content="Thread archivé")
         
