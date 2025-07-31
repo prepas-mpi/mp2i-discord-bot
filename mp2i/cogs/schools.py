@@ -301,10 +301,9 @@ class School(Cog):
             )
             self.manager.postcpge[guild.guild.id].append(school)
         # register preivously created object into database
-        with database.Session(database.engine) as session:
+        with database.Session(database.engine, expire_on_commit=False) as session:
             session.add(school)
             session.commit()
-            session.expunge(school)
         await reply.edit(
             content=f"Établissement `{school_name}` enregistré et " + \
             f"le channel de discussion est disponible ici : {thread.jump_url}."
