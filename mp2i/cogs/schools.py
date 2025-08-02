@@ -559,6 +559,13 @@ class School(Cog):
             if postcpge:
                 embed.add_field(name="Poursuite d'études", value=postcpge.name)
 
+        # add message to indicate profilecolor command for those
+        # who don't have changed their profile's colour
+        if member.profile_color == "0000FF" and member.id == user.id:
+            embed.set_footer(
+                text="Vous pouvez changer la couleur de votre profil via la commande `/profilecolor <couleur>`."
+            )
+
         await ctx.send(embed=embed)
 
     @defer(ephemeral=True)

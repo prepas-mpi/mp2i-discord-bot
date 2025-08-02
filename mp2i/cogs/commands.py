@@ -1,7 +1,6 @@
 import re
 import logging
 from typing import Optional
-from operator import attrgetter
 
 import discord
 from discord.ext.commands import Cog, Range
@@ -17,8 +16,6 @@ from mp2i.wrappers.member import MemberWrapper
 from mp2i.utils.discord import defer, has_any_role
 
 logger = logging.getLogger(__name__)
-
-LEADERBOARD_RANK_MAX = 50
 
 
 class Commands(Cog):
@@ -114,40 +111,6 @@ class Commands(Cog):
                 number = len(guild.get_role(role_cfg.id).members)
                 emoji = guild.get_emoji_by_name(role_cfg.emoji)
                 embed.add_field(name=f"{emoji} {role_name}", value=number)
-        await ctx.send(embed=embed)
-
-    @hybrid_command(name="leaderboard")
-    @guild_only()
-    @defer()
-    async def leaderboard(self, ctx, rmax: Optional[int] = 10) -> None:
-        """
-        Affiche le classement des membres par nombre de messages.
-
-        Parameters
-        ----------
-        rmax : int
-            Rang maximal (compris entre 0 et 50)
-        """
-        if rmax < 0 or rmax > LEADERBOARD_RANK_MAX:
-            message = f"rmax doit être compris entre 0 et {LEADERBOARD_RANK_MAX}"
-            return await ctx.reply(message, ephemeral=True)
-
-        members = [MemberWrapper(m) for m in ctx.guild.members if not m.bot]
-        members.sort(key=attrgetter("messages_count"), reverse=True)
-
-        author = MemberWrapper(ctx.author)
-        rank = members.index(author) + 1
-        content = f"→ {rank}. **{author.name}** : {author.messages_count} messages\n\n"
-
-        if rmax == 0:
-            title = "Votre classement dans le serveur :"
-        else:
-            title = f"Top {rmax} des membres du serveur"
-
-        for r, member in enumerate(members[:rmax], 1):
-            content += f"{r}. **{member.name}** : {member.messages_count} messages\n"
-
-        embed = discord.Embed(colour=0x2BFAFA, title=title, description=content)
         await ctx.send(embed=embed)
 
 async def setup(bot) -> None:
