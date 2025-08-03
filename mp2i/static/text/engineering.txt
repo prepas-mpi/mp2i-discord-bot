@@ -22,6 +22,7 @@ ECAM LaSalle
 ECAM Rennes
 ECAM-EPMI Cergy-Pontoise
 École de l'Air et de l'Espace
+École Navale
 EDHEC
 EFREI Paris
 EIDD Paris
@@ -55,6 +56,7 @@ ENSG-Géomatique Marne la Vallée
 ENSGSI Lorraine
 ENSGTI Pau
 ENSIACET Toulouse
+ENSAM Angers
 ENSIBS
 ENSIC Lorraine
 ENSICAEN Caen
