@@ -35,7 +35,7 @@ class MessageLogger(Cog):
                         f"## Message {'modifié' if edited else 'supprimé'} {part_number if len(parts) > 1 else ''}"
                     ),
                     ui.TextDisplay(
-                        f"Auteur : {message.author.mention} @ <t:{round(message.created_at.timestamp())}:T>"
+                        f"**Auteur :** {message.author.mention} @ <t:{round(message.created_at.timestamp())}:T>"
                     ),
                     accessory=ui.Button(
                         style=discord.ButtonStyle.link,
