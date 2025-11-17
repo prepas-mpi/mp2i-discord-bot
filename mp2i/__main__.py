@@ -4,8 +4,8 @@ import os
 
 import dotenv
 
+from mp2i import database
 from mp2i.bot import Bot
-from mp2i.utils import database
 
 logging.basicConfig(level=logging.INFO)
 logger: logging.Logger = logging.getLogger(__name__)
