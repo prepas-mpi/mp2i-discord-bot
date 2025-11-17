@@ -9,7 +9,15 @@ logger: logging.Logger = logging.getLogger(__name__)
 
 
 class MessageLogger(Cog):
+    """
+    Class to listen to edited and deleted messages
+    in order to log them in a separate channel
+    """
+
     def __init__(self) -> None:
+        """
+        Initialize constant values used in the logger
+        """
         super().__init__()
         self.__MAX_MESSAGE_LENGTH: int = 3096
         self.__EDITED_COLOR: int = 0x6DD7FF
@@ -19,6 +27,12 @@ class MessageLogger(Cog):
         """
         Send message in log channel
 
+        Parameters
+        ----------
+        message : discord.Message
+            The original message to log
+        edited : bool
+            True when logging an edit, False when logging a deletion
         """
         parts: List[ui.TextDisplay] = list(
             map(
@@ -60,6 +74,11 @@ class MessageLogger(Cog):
     async def on_message_delete(self, message: discord.Message) -> None:
         """
         Log deleted message in channels
+
+        Parameters
+        ----------
+        message : discord.Message
+            the deleted message
         """
         if not message.guild or message.author.bot:
             return
@@ -71,6 +90,13 @@ class MessageLogger(Cog):
     ) -> None:
         """
         Log edited message in channels
+
+        Parameters
+        ----------
+        previous_message : discord.Message
+            the previous version of the message
+        _: discord.Message
+            the new version of the message, not used in this function
         """
         if not previous_message.guild or previous_message.author.bot:
             return
@@ -78,4 +104,12 @@ class MessageLogger(Cog):
 
 
 async def setup(bot: Bot) -> None:
+    """
+    Setting up the message logger
+
+    Parameters
+    ----------
+    bot : Bot
+        instance of the discord bot
+    """
     await bot.add_cog(MessageLogger())

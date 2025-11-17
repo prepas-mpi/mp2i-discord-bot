@@ -24,6 +24,11 @@ else:
 def test_connection() -> bool:
     """
     Test that a connection with the database can be done
+
+    Returns
+    -------
+    bool
+        True if the test is a succes, False otherwise
     """
     if not engine:
         logger.warning("Attempt to connect to database but no engine was setup.")
