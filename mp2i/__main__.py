@@ -4,8 +4,8 @@ import os
 
 import dotenv
 
-from mp2i import database
-from mp2i.bot import Bot
+from .bot import Bot
+from .database import setup as database_setup
 
 logging.basicConfig(level=logging.INFO)
 logger: logging.Logger = logging.getLogger(__name__)
@@ -21,8 +21,14 @@ async def main() -> None:
         logger.fatal("Token not found.")
         return
 
-    if not database.test_connection():
+    if not database_setup.test_connection():
         logger.fatal("Stopping bot startup due to the absence of database.")
+        return
+
+    if not database_setup.initialize_database():
+        logger.fatal(
+            "Stopping bot startup due to the failing database intialize process."
+        )
         return
 
     logger.info("Starting bot")
