@@ -23,7 +23,7 @@ class MessageLogger(Cog):
         self.__EDITED_COLOR: int = 0x6DD7FF
         self.__DELETED_COLOR: int = 0xFF6D6D
 
-    async def __send_notification(self, message: discord.Message, edited: bool) -> None:
+    async def _send_notification(self, message: discord.Message, edited: bool) -> None:
         """
         Send message in log channel
 
@@ -82,7 +82,7 @@ class MessageLogger(Cog):
         """
         if not message.guild or message.author.bot:
             return
-        await self.__send_notification(message, False)
+        await self._send_notification(message, False)
 
     @Cog.listener()
     async def on_message_edit(
@@ -100,7 +100,7 @@ class MessageLogger(Cog):
         """
         if not previous_message.guild or previous_message.author.bot:
             return
-        await self.__send_notification(previous_message, True)
+        await self._send_notification(previous_message, True)
 
 
 async def setup(bot: Bot) -> None:
