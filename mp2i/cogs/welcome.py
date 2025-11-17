@@ -38,7 +38,7 @@ class Welcome(Cog):
         container.add_item(
             ui.Section(
                 ui.TextDisplay(f"### {member.display_name}"),
-                ui.TextDisplay("## Arrivée d'un member"),
+                ui.TextDisplay("## Arrivée d'un membre"),
                 ui.TextDisplay(
                     f"{member.mention} a rejoint le serveur MP2I/MPI !\nN'hésitez pas à lui souhaiter la bienvenue !"
                 ),
