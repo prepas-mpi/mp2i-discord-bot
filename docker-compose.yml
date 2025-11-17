@@ -1,0 +1,40 @@
+services:
+  database:
+    container_name: mp2i-discord-database
+    image: postgres:18-alpine
+    restart: unless-stopped
+    volumes:
+      - mp2i_bot_postgresql:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=bot
+      - POSTGRES_USER=pg
+      - POSTGRES_PASSWORD=pg
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pg -d bot"]
+      interval: 1s
+      timeout: 2s
+      retries: 5
+      start_period: 0s
+
+  discord-bot:
+    container_name: mp2i-discord-bot
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        UID: "${UID:-1000}"
+        GID: "${GID:-1000}"
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+        restart: true
+    volumes:
+      - ./logs:/app/logs
+    env_file:
+      - .env
+    environment:
+      - MP2I__DATABASE_URL=postgresql+psycopg://pg:pg@mp2i-discord-database:5432/bot
+
+volumes:
+  mp2i_bot_postgresql:

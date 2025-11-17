@@ -1,0 +1,7 @@
+__pychache__
+.env.example
+.git
+.gitignore
+README.md
+logs
+.venv
