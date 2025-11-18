@@ -71,7 +71,7 @@ class Welcome(Cog):
 
 async def setup(bot: Bot) -> None:
     """
-    Setting up welcome behavious
+    Setting up welcome behaviour
 
     Parameters
     ----------
