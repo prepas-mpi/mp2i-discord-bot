@@ -1,4 +1,4 @@
-from sqlalchemy import Integer
+from sqlalchemy import BigInteger
 from sqlalchemy.orm import Mapped, mapped_column
 
 from . import Base
@@ -12,7 +12,7 @@ class User(Base):
     __tablename__ = "users"
 
     user_id: Mapped[int] = mapped_column(
-        Integer(),
+        BigInteger(),
         primary_key=True,
         nullable=False,
         info=dict(
