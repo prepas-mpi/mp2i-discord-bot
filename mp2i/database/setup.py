@@ -48,6 +48,7 @@ def initialize_database() -> bool:
         if not inspector.has_table("guilds"):
             logger.info("Creating tables...")
             Base.metadata.create_all(engine)
+            inspector = inspect(engine)
         else:
             logger.info("Tables already created.")
         return inspector.has_table("guilds")
