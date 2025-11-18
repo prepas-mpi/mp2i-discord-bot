@@ -68,7 +68,8 @@ class MemberWrapper(ObjectWrapper[discord.Member]):
         )
         if not result or (member_model := result.scalar_one_or_none()):
             logger.fatal(
-                f"Could not retrieve back MemberModel after updated from member: {self._boxed.id}"
+                "Could not retrieve back MemberModel after updated from member: %d",
+                self._boxed.id,
             )
         else:
             self.__model = member_model

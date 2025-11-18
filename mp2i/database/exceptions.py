@@ -4,7 +4,7 @@ class InsertException(Exception):
     """
 
     def __init__(self, type: str):
-        super().__init__(f"Could not insert {type} in database.")
+        super().__init__("Could not insert %s in database.", type)
 
 
 class ReturningElementException(Exception):
@@ -14,5 +14,6 @@ class ReturningElementException(Exception):
 
     def __init__(self, type: str):
         super().__init__(
-            f"An expected object from a query was expected but none have been found for {type}."
+            "An expected object from a query was expected but none have been found for %s.",
+            type,
         )

@@ -42,5 +42,5 @@ class ObjectWrapper(Generic[T]):
             return getattr(self._boxed, name)
 
         raise AttributeError(
-            f"Attribute {name} not found in {type(self._boxed).__name__}."
+            "Attribute %s not found in %s.", name, type(self._boxed).__name__
         )

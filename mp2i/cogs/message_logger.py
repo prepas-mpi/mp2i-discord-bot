@@ -1,11 +1,8 @@
-import logging
 from typing import List
 
 import discord
 from discord import ui
 from discord.ext.commands import Bot, Cog
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 
 class MessageLogger(Cog):

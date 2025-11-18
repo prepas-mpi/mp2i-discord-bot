@@ -1,12 +1,8 @@
-import logging
-
 import discord
 from discord.ext.commands import Bot, Cog
 
 from mp2i.wrappers.guild import GuildWrapper
 from mp2i.wrappers.member import MemberWrapper
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 
 class GuildRegistration(Cog):

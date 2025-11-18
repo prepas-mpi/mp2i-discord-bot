@@ -29,6 +29,6 @@ class Bot(commands.Bot):
             try:
                 await self.load_extension(f"mp2i.cogs.{filename[:-3]}")
             except Exception as e:
-                logger.fatal(f"Failed to load {filename}: {e}")
+                logger.fatal(f"Failed to load %s: {e}", filename)
 
         await self.tree.sync()

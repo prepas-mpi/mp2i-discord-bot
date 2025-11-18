@@ -1,4 +1,3 @@
-import logging
 from typing import Any, Optional
 
 import discord
@@ -9,8 +8,6 @@ from mp2i.database.exceptions import InsertException, ReturningElementException
 from mp2i.database.models.user import UserModel
 
 from . import ObjectWrapper
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 
 class UserWrapper(ObjectWrapper[discord.User]):
