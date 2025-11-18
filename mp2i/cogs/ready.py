@@ -1,7 +1,11 @@
+import logging
+
 from discord.ext.commands import Bot, Cog
 
 from mp2i.wrappers.guild import GuildWrapper
 from mp2i.wrappers.member import MemberWrapper
+
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 class Ready(Cog):
@@ -29,6 +33,8 @@ class Ready(Cog):
             guild_wrapper.register()
             async for member in guild_wrapper._boxed.fetch_members():
                 MemberWrapper(member).register()
+
+        logger.info("Bot is ready and has register every member.")
 
 
 async def setup(bot: Bot) -> None:
