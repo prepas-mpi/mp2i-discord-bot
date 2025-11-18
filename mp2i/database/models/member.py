@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, Optional
 
 from sqlalchemy import BigInteger, ForeignKey, Integer, PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column
@@ -42,3 +42,23 @@ class Member(Base):
         nullable=True,
         info=dict(label="Profile Colour", hint="Member's profile colour"),
     )
+
+    def __eq__(self, other: Any) -> bool:
+        """
+        Check if an object is equal to the Member
+
+        Parameters
+        ----------
+        other : Any
+            other object to compare
+
+        Returns
+        -------
+        bool
+            True if the two objects are equal, False otherwise
+        """
+        return (
+            isinstance(other, Member)
+            and self.guild_id == other.guild_id
+            and self.user_id == other.user_id
+        )

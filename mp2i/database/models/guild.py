@@ -1,3 +1,5 @@
+from typing import Any
+
 from sqlalchemy import BigInteger
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -20,3 +22,19 @@ class Guild(Base):
             hint="Unique discord ID of the guild.",
         ),
     )
+
+    def __eq__(self, other: Any) -> bool:
+        """
+        Check if an object is equal to the Guild
+
+        Parameters
+        ----------
+        other : Any
+            other object to compare
+
+        Returns
+        -------
+        bool
+            True if the two objects are equal, False otherwise
+        """
+        return isinstance(other, Guild) and self.guild_id == other.guild_id

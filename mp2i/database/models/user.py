@@ -1,3 +1,5 @@
+from typing import Any
+
 from sqlalchemy import BigInteger
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -20,3 +22,19 @@ class User(Base):
             hint="Unique discord ID of the user.",
         ),
     )
+
+    def __eq__(self, other: Any) -> bool:
+        """
+        Check if an object is equal to the User
+
+        Parameters
+        ----------
+        other : Any
+            other object to compare
+
+        Returns
+        -------
+        bool
+            True if the two objects are equal, False otherwise
+        """
+        return isinstance(other, User) and self.user_id == other.user_id

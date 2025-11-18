@@ -6,6 +6,8 @@ import discord
 from discord import ui
 from discord.ext.commands import Bot, Cog
 
+from mp2i.wrappers.member import MemberWrapper
+
 logger: logging.Logger = logging.getLogger(__name__)
 
 
@@ -20,8 +22,8 @@ class Welcome(Cog):
         """
         super().__init__()
 
-    @Cog.listener()
-    async def on_member_join(self, member: discord.Member) -> None:
+    @Cog.listener("on_member_join")
+    async def send_welcome_message(self, member: discord.Member) -> None:
         """
         Send a welcome message in guild's system channel
 
@@ -32,6 +34,7 @@ class Welcome(Cog):
         """
         channel: Optional[discord.TextChannel] = member.guild.system_channel
         if not channel:
+            logger.warning(f"No system channel is setup for guild {member.guild.name}.")
             return
 
         container: ui.Container = ui.Container()
@@ -52,6 +55,18 @@ class Welcome(Cog):
         view.add_item(container)
 
         await channel.send(view=view, allowed_mentions=discord.AllowedMentions.none())
+
+    @Cog.listener("on_member_join")
+    async def register_member(self, member: discord.Member) -> None:
+        """
+        Register member in database
+
+        Parameters
+        ----------
+        member : discord.Member
+            the member that has just joined the guild
+        """
+        MemberWrapper(member).register()
 
 
 async def setup(bot: Bot) -> None:
