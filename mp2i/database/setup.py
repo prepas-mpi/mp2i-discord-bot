@@ -4,9 +4,11 @@ from sqlalchemy import Inspector, inspect
 
 from . import engine
 from .models import Base
-from .models.guild import Guild as Guild
-from .models.member import Member as Member
-from .models.user import User as User
+
+# Import so that models are registered in Base's metadata
+from .models.guild import GuildModel as GuildModel
+from .models.member import MemberModel as MemberModel
+from .models.user import UserModel as UserModel
 
 logger: logging.Logger = logging.getLogger(__name__)
 

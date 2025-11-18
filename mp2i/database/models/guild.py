@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from . import Base
 
 
-class Guild(Base):
+class GuildModel(Base):
     """
     Represent a discord Guild
     """
@@ -37,4 +37,4 @@ class Guild(Base):
         bool
             True if the two objects are equal, False otherwise
         """
-        return isinstance(other, Guild) and self.guild_id == other.guild_id
+        return isinstance(other, GuildModel) and self.guild_id == other.guild_id

@@ -6,7 +6,7 @@ from sqlalchemy import Result, insert, select
 
 import mp2i.database.executor as database_executor
 from mp2i.database.exceptions import InsertException, ReturningElementException
-from mp2i.database.models.user import User as UserModel
+from mp2i.database.models.user import UserModel
 
 from . import ObjectWrapper
 

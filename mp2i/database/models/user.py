@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from . import Base
 
 
-class User(Base):
+class UserModel(Base):
     """
     Represent a discord User
     """
@@ -37,4 +37,4 @@ class User(Base):
         bool
             True if the two objects are equal, False otherwise
         """
-        return isinstance(other, User) and self.user_id == other.user_id
+        return isinstance(other, UserModel) and self.user_id == other.user_id
