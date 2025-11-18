@@ -16,12 +16,6 @@ class Welcome(Cog):
     Define bot's behaviour when a member join a guild
     """
 
-    def __init__(self):
-        """
-        Initialize parent classes
-        """
-        super().__init__()
-
     @Cog.listener("on_member_join")
     async def send_welcome_message(self, member: discord.Member) -> None:
         """
