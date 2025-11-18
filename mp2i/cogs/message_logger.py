@@ -14,14 +14,9 @@ class MessageLogger(Cog):
     in order to log them in a separate channel
     """
 
-    def __init__(self) -> None:
-        """
-        Initialize constant values used in the logger
-        """
-        super().__init__()
-        self.__MAX_MESSAGE_LENGTH: int = 3096
-        self.__EDITED_COLOR: int = 0x6DD7FF
-        self.__DELETED_COLOR: int = 0xFF6D6D
+    __MAX_MESSAGE_LENGTH: int = 3096
+    __EDITED_COLOR: int = 0x6DD7FF
+    __DELETED_COLOR: int = 0xFF6D6D
 
     async def _send_notification(self, message: discord.Message, edited: bool) -> None:
         """
