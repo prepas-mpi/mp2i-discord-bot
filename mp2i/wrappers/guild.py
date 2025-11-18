@@ -2,7 +2,7 @@ import logging
 from typing import Any, Optional
 
 import discord
-from sqlalchemy import Result, insert, select
+from sqlalchemy import Result, delete, insert, select
 
 import mp2i.database.executor as database_executor
 from mp2i.database.exceptions import InsertException, ReturningElementException
@@ -47,6 +47,7 @@ class GuildWrapper(ObjectWrapper[discord.Guild]):
         """
         if self.__model:
             return self.__model
+
         result: Optional[Result[GuildModel]] = database_executor.execute(
             insert(GuildModel)
             .values(
@@ -63,6 +64,17 @@ class GuildWrapper(ObjectWrapper[discord.Guild]):
 
         self.__model = guild_model
         return guild_model
+
+    def delete(self) -> None:
+        """
+        Delete the guild
+        """
+        if not self.__model:
+            return
+
+        database_executor.execute(
+            delete(GuildModel).where(GuildModel.guild_id == self.__model.guild_id)
+        )
 
     def __eq__(self, value: Any) -> bool:
         """
