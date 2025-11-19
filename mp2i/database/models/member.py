@@ -1,6 +1,12 @@
 from typing import Any, Optional
 
-from sqlalchemy import BigInteger, ForeignKey, Integer, PrimaryKeyConstraint
+from sqlalchemy import (
+    BigInteger,
+    ForeignKey,
+    Index,
+    Integer,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from . import Base
@@ -12,7 +18,17 @@ class MemberModel(Base):
     """
 
     __tablename__ = "members"
-    __table_args__ = (PrimaryKeyConstraint("guild_id", "user_id"),)
+    __table_args__ = (
+        UniqueConstraint("guild_id", "user_id"),
+        Index("guild_id", "user_id"),
+    )
+
+    member_id: Mapped[int] = mapped_column(
+        BigInteger(),
+        primary_key=True,
+        nullable=False,
+        info=dict(label="Member ID", hint="Unique member ID in database."),
+    )
 
     guild_id: Mapped[int] = mapped_column(
         BigInteger(),
