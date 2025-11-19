@@ -10,7 +10,6 @@ import mp2i.utils.config as config
 from .bot import Bot
 from .database import setup as database_setup
 
-logging.basicConfig(level=logging.INFO)
 logger: logging.Logger = logging.getLogger(__name__)
 
 
