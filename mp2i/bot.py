@@ -23,12 +23,18 @@ class Bot(commands.Bot):
         Load cogs file before starting the bot
         """
         logger.info("Loading all cogs files.")
-        for filename in filter(
-            lambda file_name: file_name.endswith(".py"), os.listdir("./mp2i/cogs")
-        ):
-            try:
-                await self.load_extension(f"mp2i.cogs.{filename[:-3]}")
-            except Exception as e:
-                logger.fatal(f"Failed to load %s: {e}", filename)
+        base_dir = "./mp2i/cogs"
+        for root, _, files in os.walk(base_dir):
+            for filename in files:
+                if not filename.endswith(".py") or filename.startswith("_"):
+                    continue
+                rel_path = os.path.relpath(root, "./mp2i")
+                module_path = (
+                    "mp2i." + rel_path.replace(os.sep, ".") + "." + filename[:-3]
+                )
+                try:
+                    await self.load_extension(module_path)
+                except Exception as e:
+                    logger.fatal("Failed to load %s: %s", module_path, e)
 
         await self.tree.sync()
