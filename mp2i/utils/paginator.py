@@ -215,7 +215,6 @@ class Paginator(ABC, ui.View):
             await interaction.edit_original_response(embed=embed, view=view)
             return
 
-        # Initialize button states and indicator label based on current page
         for child in self.children:
             if not isinstance(child, ui.Button):
                 continue
