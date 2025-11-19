@@ -55,6 +55,19 @@ def get_config() -> dict[str, Any]:
 
 
 def get_config_deep(path: str) -> dict[str, Any]:
+    """
+    Retrieve data in deep layers
+    
+    Parameters
+    ----------
+    path : str
+        Path to the data, each [dot] go deeper
+    
+    Returns
+    -------
+    dict[str, Any]
+        Data contained at the followed path
+    """
     node: dict[str, Any] = get_config()
     for part in path.split("."):
         node = node.get(part, {})
