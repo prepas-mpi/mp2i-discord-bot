@@ -57,12 +57,12 @@ def get_config() -> dict[str, Any]:
 def get_config_deep(path: str) -> dict[str, Any]:
     """
     Retrieve data in deep layers
-    
+
     Parameters
     ----------
     path : str
         Path to the data, each [dot] go deeper
-    
+
     Returns
     -------
     dict[str, Any]
@@ -72,3 +72,24 @@ def get_config_deep(path: str) -> dict[str, Any]:
     for part in path.split("."):
         node = node.get(part, {})
     return node
+
+
+def get_logger_config() -> dict[str, Any]:
+    """
+    Get logger's config
+
+    Returns
+    -------
+    dict[str, Any]
+        Data contained in the logger's config
+
+    Raises
+    ------
+    FileNotFoundError
+        File `log-config.toml` could not be found in root project
+    """
+    logging_config_path: Path = _working_dir / "log-config.toml"
+    if not logging_config_path.exists():
+        raise FileNotFoundError("Could not find log-config.toml")
+    with logging_config_path.open("rb") as f:
+        return toml.load(f)

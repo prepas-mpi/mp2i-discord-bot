@@ -1,10 +1,11 @@
 import asyncio
 import logging
+import logging.config as logging_config
 import os
 
 import dotenv
 
-from mp2i.utils.config import has_config
+import mp2i.utils.config as config
 
 from .bot import Bot
 from .database import setup as database_setup
@@ -19,7 +20,14 @@ async def main() -> None:
     """
     dotenv.load_dotenv()
 
-    if not has_config():
+    try:
+        logging_config.dictConfig(config.get_logger_config())
+    except FileNotFoundError:
+        logger.warning(
+            "No configuration found for logger. Logs will only appear in the console."
+        )
+
+    if not config.has_config():
         logger.fatal("No config has been found.")
         return
 
