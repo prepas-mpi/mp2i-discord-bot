@@ -13,6 +13,8 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 COPY . .
 
+RUN mkdir logs
+
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
 
@@ -20,7 +22,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 FROM pypy:3.11-slim AS runtime
 
-RUN apt-get update && apt-get install -y libpq-dev
+RUN apt-get update && apt-get install -y libpq-dev gosu
 
 ENV PATH="/app/.venv/bin:$PATH"
 
@@ -33,7 +35,12 @@ RUN groupadd -g ${GID} app-bot && \
 WORKDIR /app
 
 COPY --from=build --chown=app-bot:app-bot /app .
+VOLUME /app/logs
 
-USER app-bot
+RUN <<!! cat >> entrypoint.sh
+#!/bin/bash
+chown app-bot:app-bot /app/logs
+exec gosu app-bot python -m mp2i
+!!
 
-ENTRYPOINT ["python", "-m", "mp2i"]
+ENTRYPOINT ["/bin/bash", "entrypoint.sh"]
