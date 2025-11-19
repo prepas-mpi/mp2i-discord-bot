@@ -128,6 +128,27 @@ class MemberWrapper(ObjectWrapper[discord.Member]):
             return
         self._update(message_count=self.__model.message_count + 1)
 
+    @property
+    def profile_colour(self) -> Optional[int]:
+        """
+        Get member's profile colour
+
+        Returns
+        -------
+        Optional[int]
+            Member's profile colour if it has been set, None otherwise
+        """
+        if not self.__model:
+            return None
+        return self.__model.profile_colour
+
+    @profile_colour.setter
+    def profile_colour(self, colour: int) -> None:
+        if not self.__model:
+            return
+        self.__model.profile_colour = colour
+        self._update(profile_colour=colour)
+
     def __eq__(self, value: Any) -> bool:
         """
         Check if an object is equal to the MemberWrapper
