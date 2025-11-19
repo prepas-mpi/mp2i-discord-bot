@@ -5,7 +5,6 @@ from typing import List, Optional, Tuple
 
 import discord
 import discord.ui as ui
-from discord.ext.commands import Bot
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -17,7 +16,6 @@ class Paginator(ABC, ui.View):
 
     def __init__(
         self,
-        bot: Bot,
         author: int,
         title: str,
         header: str,
@@ -32,7 +30,6 @@ class Paginator(ABC, ui.View):
         Initialize variables and give timeout to superclass
         """
         super().__init__(timeout=timeout)
-        self.bot = bot
         self.author = author
         self.title = title
         self.header = header
@@ -238,7 +235,6 @@ class EmbedPaginator(Paginator):
 
     def __init__(
         self,
-        bot: Bot,
         author: int,
         title: str,
         header: str,
@@ -254,7 +250,6 @@ class EmbedPaginator(Paginator):
         Add button to view
         """
         super().__init__(
-            bot,
             author,
             title,
             header,
