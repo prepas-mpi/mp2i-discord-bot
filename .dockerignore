@@ -5,3 +5,4 @@ __pychache__
 README.md
 logs
 .venv
+.config.toml.example
