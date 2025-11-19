@@ -32,7 +32,8 @@ class Ready(Cog):
         for guild_wrapper in map(GuildWrapper, self._bot.guilds):
             guild_wrapper.register()
             async for member in guild_wrapper._boxed.fetch_members():
-                MemberWrapper(member).register()
+                if not member.bot:
+                    MemberWrapper(member).register()
 
         logger.info("Bot is ready and has register every member.")
 
