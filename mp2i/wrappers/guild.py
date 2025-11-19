@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 import discord
 from sqlalchemy import Result, delete, insert, select
@@ -6,6 +6,7 @@ from sqlalchemy import Result, delete, insert, select
 import mp2i.database.executor as database_executor
 from mp2i.database.exceptions import InsertException, ReturningElementException
 from mp2i.database.models.guild import GuildModel
+from mp2i.utils.config import get_config_deep
 
 from . import ObjectWrapper
 
@@ -15,9 +16,11 @@ class GuildWrapper(ObjectWrapper[discord.Guild]):
     Wrap a discord.Guild object to also have its database information
     """
 
-    def __init__(self, guild: discord.Guild) -> None:
+    def __init__(self, guild: discord.Guild, fetch: bool = True) -> None:
         super().__init__(guild)
-        self.__model = self._fetch()
+        self._config = get_config_deep(f"guilds.{guild.id}")
+        if fetch:
+            self.__model = self._fetch()
 
     def _fetch(self) -> Optional[GuildModel]:
         """
@@ -72,6 +75,14 @@ class GuildWrapper(ObjectWrapper[discord.Guild]):
         database_executor.execute(
             delete(GuildModel).where(GuildModel.guild_id == self.__model.guild_id)
         )
+
+    @property
+    def get_log_channel(self) -> Optional[int]:
+        return self._config.get("logs", {}).get("channel", None)
+
+    @property
+    def get_blacklisted_log_channels(self) -> List[int]:
+        return self._config.get("logs", {}).get("blacklist", [])
 
     def __eq__(self, value: Any) -> bool:
         """

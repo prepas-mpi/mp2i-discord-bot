@@ -1,0 +1,8 @@
+[servers]
+    [servers.server_id]
+        [servers.server_id.logs]
+        channel = channel_id
+        blacklist = [
+            channel_id,
+            channel_id
+        ]

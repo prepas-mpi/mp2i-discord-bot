@@ -1,8 +1,13 @@
-from typing import List
+import logging
+from typing import List, Optional
 
 import discord
 from discord import ui
 from discord.ext.commands import Bot, Cog
+
+from mp2i.wrappers.guild import GuildWrapper
+
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 class MessageLogger(Cog):
@@ -26,6 +31,26 @@ class MessageLogger(Cog):
         edited : bool
             True when logging an edit, False when logging a deletion
         """
+        # or type error when wrapping
+        assert bool(message.guild)
+        guild: GuildWrapper = GuildWrapper(message.guild, fetch=False)
+
+        if not guild.get_log_channel:
+            logger.warning(
+                "Log channel for guild %d has not been configured yet.", guild.id
+            )
+            return
+
+        channel: Optional[discord.GuildChannel] = guild.get_channel(
+            guild.get_log_channel
+        )
+        if not channel or not isinstance(channel, discord.TextChannel):
+            logger.warning("Log channel for guild %d has been misconfigured.", guild.id)
+            return
+
+        if message.channel.id in guild.get_blacklisted_log_channels:
+            return
+
         parts: List[ui.TextDisplay] = list(
             map(
                 lambda text: ui.TextDisplay(f"```yml\n{text}```"),
@@ -58,7 +83,7 @@ class MessageLogger(Cog):
 
             view: ui.LayoutView = ui.LayoutView()
             view.add_item(container)
-            await message.channel.send(
+            await channel.send(
                 view=view, allowed_mentions=discord.AllowedMentions.none()
             )
 

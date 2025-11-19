@@ -4,6 +4,8 @@ import os
 
 import dotenv
 
+from mp2i.utils.config import has_config
+
 from .bot import Bot
 from .database import setup as database_setup
 
@@ -16,6 +18,10 @@ async def main() -> None:
     Main function of program
     """
     dotenv.load_dotenv()
+
+    if not has_config():
+        logger.fatal("No config has been found.")
+        return
 
     if not (token := os.getenv("MP2I__DISCORD_BOT_TOKEN")):
         logger.fatal("Token not found.")
