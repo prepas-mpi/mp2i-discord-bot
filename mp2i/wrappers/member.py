@@ -66,7 +66,7 @@ class MemberWrapper(ObjectWrapper[discord.Member]):
             .values(**kwargs)
             .returning(MemberModel)
         )
-        if not result or (member_model := result.scalar_one_or_none()):
+        if not result or not (member_model := result.scalar_one_or_none()):
             logger.fatal(
                 "Could not retrieve back MemberModel after updated from member: %d",
                 self._boxed.id,
