@@ -126,7 +126,7 @@ class MemberWrapper(ObjectWrapper[discord.Member]):
         """
         if not self.__model:
             return
-        self._update(messages_count=self.__model.message_count + 1)
+        self._update(message_count=self.__model.message_count + 1)
 
     def __eq__(self, value: Any) -> bool:
         """
