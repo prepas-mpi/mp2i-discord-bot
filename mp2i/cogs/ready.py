@@ -31,7 +31,7 @@ class Ready(Cog):
         """
         for guild_wrapper in map(GuildWrapper, self._bot.guilds):
             guild_wrapper.register()
-            async for member in guild_wrapper._boxed.fetch_members():
+            async for member in guild_wrapper.fetch_members():
                 if not member.bot:
                     MemberWrapper(member).register()
 
