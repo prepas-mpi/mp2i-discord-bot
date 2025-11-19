@@ -20,10 +20,6 @@ class Leaderboard(Cog):
     __NAME_PATTERN: re.Pattern = re.compile(r"([^|@]+)([@|#]):?[^@#|]*")
     __ENTRIES_PER_PAGE: int = 10
 
-    def __init__(self, bot: Bot) -> None:
-        """ """
-        self.bot = bot
-
     @Cog.listener("on_message")
     @guild_only()
     async def update_message_counter(self, message: discord.Message) -> None:
@@ -145,4 +141,4 @@ async def setup(bot: Bot):
     bot : Bot
         instance of the discord bot
     """
-    await bot.add_cog(Leaderboard(bot))
+    await bot.add_cog(Leaderboard())
