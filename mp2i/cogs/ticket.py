@@ -177,7 +177,7 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
 
         await channel.send(view=view)
         await interaction.edit_original_response(
-            content=f"Un message a été émis dans le salon {channel.jump_url}."
+            content=f"Un message a été envoyé dans le salon {channel.jump_url}."
         )
 
     @command(name="open", description="Ouvre un ticket pour un membre")
