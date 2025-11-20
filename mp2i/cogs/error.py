@@ -60,4 +60,3 @@ async def setup(bot: Bot) -> None:
                 interaction.command.qualified_name,
                 error,
             )
-            raise error
