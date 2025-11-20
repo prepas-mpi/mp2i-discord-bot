@@ -1,10 +1,10 @@
 [guilds]
     [guilds.server_id]
 
-        [guilds.server_id.roles.Administrator]
+        [guilds.server_id.roles.Administrateur]
         id = role_id
 
-        [guilds.server_id.roles.Moderator]
+        [guilds.server_id.roles."Modérateur"]
         id = role_id
 
         [guilds.server_id.logs]
