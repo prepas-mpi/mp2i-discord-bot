@@ -102,7 +102,7 @@ class GuildWrapper(ObjectWrapper[discord.Guild]):
     def get_text_channel(self, id: Optional[int]) -> Optional[discord.TextChannel]:
         if not id:
             return None
-        channel: Optional[discord.GuildChannel] = self._boxed.get_channel(id)
+        channel: Optional[discord.guild.GuildChannel] = self._boxed.get_channel(id)
         if not channel or not isinstance(channel, discord.TextChannel):
             return None
         return channel
