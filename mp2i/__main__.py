@@ -20,6 +20,8 @@ async def main() -> None:
     dotenv.load_dotenv()
 
     try:
+        if not os.path.exists("logs"):
+            os.makedirs("logs")
         logging_config.dictConfig(config.get_logger_config())
     except FileNotFoundError:
         logger.warning(
