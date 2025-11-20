@@ -55,8 +55,9 @@ async def setup(bot: Bot) -> None:
             )
         else:
             logger.fatal(
-                "An error occured with user %d and command `%s`.",
+                "An error occured with user %d and command `%s`. %s",
                 interaction.user.id,
                 interaction.command.qualified_name,
+                error,
             )
             raise error
