@@ -1,3 +1,4 @@
+import logging
 from typing import Any, List, Optional
 
 import discord
@@ -9,6 +10,8 @@ from mp2i.database.models.guild import GuildModel
 from mp2i.utils.config import get_config_deep
 
 from . import ObjectWrapper
+
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 class GuildWrapper(ObjectWrapper[discord.Guild]):
@@ -76,9 +79,23 @@ class GuildWrapper(ObjectWrapper[discord.Guild]):
             delete(GuildModel).where(GuildModel.guild_id == self.__model.guild_id)
         )
 
+    def get_text_channel(self, id: Optional[int]) -> Optional[discord.TextChannel]:
+        if not id:
+            return None
+        channel: Optional[discord.GuildChannel] = self._boxed.get_channel(id)
+        if not channel or not isinstance(channel, discord.TextChannel):
+            return None
+        return channel
+
     @property
-    def get_log_channel(self) -> Optional[int]:
-        return self._config.get("logs", {}).get("channel", None)
+    def get_log_channel(self) -> Optional[discord.TextChannel]:
+        channel: Optional[discord.TextChannel] = self.get_text_channel(
+            self._config.get("logs", {}).get("channel", None)
+        )
+        if not channel:
+            logger.warning(
+                "Log channel for guild %d has been misconfigured.", self._boxed.id
+            )
 
     @property
     def get_blacklisted_log_channels(self) -> List[int]:

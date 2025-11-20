@@ -35,20 +35,9 @@ class MessageLogger(Cog):
         assert bool(message.guild)
         guild: GuildWrapper = GuildWrapper(message.guild, fetch=False)
 
-        if not guild.get_log_channel:
-            logger.warning(
-                "Log channel for guild %d has not been configured yet.", guild.id
-            )
-            return
+        channel: Optional[discord.TextChannel] = guild.get_log_channel
 
-        channel: Optional[discord.GuildChannel] = guild.get_channel(
-            guild.get_log_channel
-        )
-        if not channel or not isinstance(channel, discord.TextChannel):
-            logger.warning("Log channel for guild %d has been misconfigured.", guild.id)
-            return
-
-        if message.channel.id in guild.get_blacklisted_log_channels:
+        if not channel or message.channel.id in guild.get_blacklisted_log_channels:
             return
 
         parts: List[ui.TextDisplay] = list(
