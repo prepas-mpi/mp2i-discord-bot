@@ -48,3 +48,7 @@ Pour démarrer le bot discord avec de nouveaux changements effectués, il est n�
 ```sh
 docker compose up --build -d
 ```
+
+## Serveur Public de Tests
+
+Un serveur public de tests est accessible par l'invitation : discord[dot]gg/zAEBkeA5EU
