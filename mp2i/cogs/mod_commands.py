@@ -27,6 +27,16 @@ class ModCommands(Cog):
         interaction: discord.Interaction,
         num: Range[int, 1, __MAX_DELETED_MESSAGES],
     ) -> None:
+        """
+        Clear last n messages in a channel
+
+        Parameters
+        ----------
+        interaction : discord.Interaction
+            The slash command interaction
+        num : Range[int, 1, __MAX_DELETED_MESSAGES]
+            The number of messages to delete
+        """
         if not interaction.channel:
             logger.warning(
                 "User %d can not delete message as they are not in a channel.",
@@ -71,6 +81,20 @@ class ModCommands(Cog):
         channel: discord.TextChannel,
         message: str,
     ) -> None:
+        """
+        Make the bot say something a in channel
+
+        Parameters
+        ----------
+        interaction : discord.Interaction
+            The slash command interaction
+
+        channel : discord.TextChannel
+            The channel to send the message to
+
+        message : str
+            The message to send in the channel
+        """
         logger.info(
             "User %d send message through bot in channel %d. Message: %s",
             interaction.user.id,
