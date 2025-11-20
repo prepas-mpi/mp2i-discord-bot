@@ -29,9 +29,13 @@ class Ready(Cog):
         """
         Registering guilds and members in database
         """
+        logger.info("Registering members")
         for guild_wrapper in map(GuildWrapper, self._bot.guilds):
             guild_wrapper.register()
-            async for member in guild_wrapper.fetch_members():
+            logger.debug("Chunking guild")
+            await guild_wrapper.chunk()
+            logger.debug("Begin registering members")
+            for member in guild_wrapper.members:
                 if not member.bot:
                     MemberWrapper(member).register()
 
