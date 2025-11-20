@@ -93,3 +93,38 @@ def get_logger_config() -> dict[str, Any]:
         raise FileNotFoundError("Could not find log-config.toml")
     with logging_config_path.open("rb") as f:
         return toml.load(f)
+
+
+def get_static_file_path(sub_path: str) -> Path:
+    """
+    Retrieve the path of a static file such as text.
+
+    Parameters
+    ----------
+    sub_path : str
+        sub path from static folder
+
+    Returns
+    -------
+    Path
+        Path to the desired file
+    """
+    return _working_dir / "static" / sub_path
+
+
+def get_text_from_static_file(sub_path: str) -> str:
+    """
+    Retrieve text inside a static file.
+
+    Parameters
+    ----------
+    sub_path : str
+        sub path from static folder
+
+    Returns
+    -------
+    str
+        Content of the desired file
+    """
+    with get_static_file_path(sub_path).open("r") as f:
+        return "".join(f.readlines())
