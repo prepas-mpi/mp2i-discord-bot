@@ -3,14 +3,14 @@ from typing import List, Optional
 
 import discord
 import discord.ui as ui
-from discord.app_commands import command, describe, guild_only
+from discord.app_commands import MissingAnyRole, command, describe, guild_only
 from discord.ext.commands import Bot, Cog, GroupCog
 from sqlalchemy import Result, insert, select, update
 
 import mp2i.database.executor as database_executor
 from mp2i.database.models.ticket import TicketLevel, TicketModel
 from mp2i.utils.config import get_text_from_static_file
-from mp2i.utils.discord import has_any_role
+from mp2i.utils.discord import has_any_role, has_any_roles_predicate
 from mp2i.wrappers.guild import GuildWrapper
 from mp2i.wrappers.member import MemberWrapper
 
@@ -337,20 +337,13 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
                 "Il semblerait que vous ne puissez interagir ici.", ephemeral=True
             )
             return
-        guild: GuildWrapper = GuildWrapper(interaction.guild, fetch=False)
         thread: discord.Thread = interaction.channel
 
-        needed_role: List[discord.Role] = guild.mapping_roles(
-            ["Administrateur", "Modérateur"]
-        )
-        if len([role for role in needed_role if role in interaction.user.roles]) == 0:
-            logger.info(
-                "User %d tried to close ticket with thread %d.",
-                interaction.user.id,
-                thread.id,
-            )
+        try:
+            await has_any_roles_predicate(interaction, "Administrateur", "Modérateur")
+        except MissingAnyRole:
             await interaction.response.send_message(
-                "Vous n'êtes pas habilité à fermer un ticket.", ephemeral=True
+                "Vous ne pouvez pas clôturer vous-même le ticket.", ephemeral=True
             )
             return
 
