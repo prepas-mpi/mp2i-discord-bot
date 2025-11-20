@@ -79,6 +79,26 @@ class GuildWrapper(ObjectWrapper[discord.Guild]):
             delete(GuildModel).where(GuildModel.guild_id == self.__model.guild_id)
         )
 
+    def mapping_roles(self, roles: List[str]) -> List[discord.Role]:
+        config_roles: dict[str, Any] = self._config.get("roles", {})
+        out = []
+        for role in roles:
+            id: Optional[int] = config_roles.get(role, {}).get("id", None)
+            if not id:
+                logger.warning(
+                    "There is no role named %s in config file for guild %d.",
+                    role,
+                    self._boxed.id,
+                )
+                continue
+            if discord_role := self._boxed.get_role(id):
+                out.append(discord_role)
+            else:
+                logger.warning(
+                    "There is no role of id %d in guild %d.", id, self._boxed.id
+                )
+        return out
+
     def get_text_channel(self, id: Optional[int]) -> Optional[discord.TextChannel]:
         if not id:
             return None
