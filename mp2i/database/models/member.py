@@ -20,7 +20,7 @@ class MemberModel(Base):
     __tablename__ = "members"
     __table_args__ = (
         UniqueConstraint("guild_id", "user_id"),
-        Index("guild_id", "user_id"),
+        Index("idx_member_guild_user", "guild_id", "user_id"),
     )
 
     member_id: Mapped[int] = mapped_column(
