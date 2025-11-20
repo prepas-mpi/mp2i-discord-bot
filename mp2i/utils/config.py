@@ -7,8 +7,9 @@ _working_dir: Path = Path.cwd()
 _config_path: Path = _working_dir / "config.toml"
 
 _config: Optional[dict[str, Any]] = None
-with _config_path.open("rb") as f:
-    _config = toml.load(f)
+if _config_path.exists():
+    with _config_path.open("rb") as f:
+        _config = toml.load(f)
 
 
 class ConfigNotLoadedException(Exception):
@@ -126,5 +127,8 @@ def get_text_from_static_file(sub_path: str) -> str:
     str
         Content of the desired file
     """
-    with get_static_file_path(sub_path).open("r") as f:
+    path: Path = get_static_file_path(sub_path)
+    if not path.exists():
+        raise FileNotFoundError("Could not find log-config.toml")
+    with path.open("r") as f:
         return "".join(f.readlines())
