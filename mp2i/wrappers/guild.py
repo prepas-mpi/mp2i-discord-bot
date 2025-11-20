@@ -96,6 +96,7 @@ class GuildWrapper(ObjectWrapper[discord.Guild]):
             logger.warning(
                 "Log channel for guild %d has been misconfigured.", self._boxed.id
             )
+        return channel
 
     @property
     def get_blacklisted_log_channels(self) -> List[int]:
