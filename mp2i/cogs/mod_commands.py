@@ -2,8 +2,9 @@ import logging
 
 import discord
 from discord.app_commands import Range, command, describe
-from discord.app_commands.checks import has_permissions
 from discord.ext.commands import Bot, Cog, guild_only
+
+from mp2i.utils.discord import has_any_role
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -20,8 +21,8 @@ class ModCommands(Cog):
         description="Supprime les `num` messages derniers messages.",
     )
     @describe(num="Nombre de messages à supprimer")
-    @has_permissions(manage_messages=True)
     @guild_only()
+    @has_any_role("Administrateur", "Modérateur")
     async def clear(
         self,
         interaction: discord.Interaction,
@@ -73,8 +74,8 @@ class ModCommands(Cog):
         channel="Canal discord dans lequel envoyer un message",
         message="Message à envoyer à travers le bot",
     )
-    @has_permissions(manage_messages=True)
     @guild_only()
+    @has_any_role("Administrateur", "Modérateur")
     async def say(
         self,
         interaction: discord.Interaction,

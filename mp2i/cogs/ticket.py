@@ -4,13 +4,13 @@ from typing import List, Optional
 import discord
 import discord.ui as ui
 from discord.app_commands import command, describe, guild_only
-from discord.app_commands.checks import has_permissions
 from discord.ext.commands import Bot, Cog, GroupCog
 from sqlalchemy import Result, insert, select, update
 
 import mp2i.database.executor as database_executor
 from mp2i.database.models.ticket import TicketLevel, TicketModel
 from mp2i.utils.config import get_text_from_static_file
+from mp2i.utils.discord import has_any_role
 from mp2i.wrappers.guild import GuildWrapper
 from mp2i.wrappers.member import MemberWrapper
 
@@ -129,7 +129,7 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
             )
 
     @command(name="message", description="Envoie le message de tickets")
-    @has_permissions(administrator=True)
+    @has_any_role("Administrateur")
     async def ticket_message(self, interaction: discord.Interaction) -> None:
         """
         Send a message to let members create tickets
@@ -184,7 +184,7 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
     @describe(
         member="Membre concerné par le ticket", level="Niveau d'incidence du ticket"
     )
-    @has_permissions(kick_members=True)
+    @has_any_role("Administrateur", "Modérateur")
     async def open_ticket(
         self,
         interaction: discord.Interaction,
