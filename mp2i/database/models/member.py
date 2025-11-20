@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 from sqlalchemy import (
     BigInteger,
@@ -7,7 +7,9 @@ from sqlalchemy import (
     Integer,
     UniqueConstraint,
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from mp2i.database.models.ticket import TicketModel
 
 from . import Base
 
@@ -58,6 +60,8 @@ class MemberModel(Base):
         nullable=True,
         info=dict(label="Profile Colour", hint="Member's profile colour"),
     )
+
+    tickets: Mapped[List[TicketModel]] = relationship("TicketModel", lazy="selectin")
 
     def __eq__(self, other: Any) -> bool:
         """

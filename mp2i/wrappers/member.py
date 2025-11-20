@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 import discord
 from sqlalchemy import Result, insert, select, update
@@ -7,6 +7,7 @@ from sqlalchemy import Result, insert, select, update
 import mp2i.database.executor as database_executor
 from mp2i.database.exceptions import InsertException, ReturningElementException
 from mp2i.database.models.member import MemberModel
+from mp2i.database.models.ticket import TicketModel
 
 from . import ObjectWrapper
 from .user import UserWrapper
@@ -107,6 +108,12 @@ class MemberWrapper(ObjectWrapper[discord.Member]):
         return member_model
 
     @property
+    def member_id(self) -> int:
+        if not self.__model:
+            return -1
+        return self.__model.member_id
+
+    @property
     def message_count(self) -> int:
         """
         Get the message's number of the member
@@ -148,6 +155,12 @@ class MemberWrapper(ObjectWrapper[discord.Member]):
             return
         self.__model.profile_colour = colour
         self._update(profile_colour=colour)
+
+    @property
+    def tickets(self) -> List[TicketModel]:
+        if not self.__model:
+            return []
+        return self.__model.tickets
 
     def __eq__(self, value: Any) -> bool:
         """

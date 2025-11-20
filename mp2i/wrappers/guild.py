@@ -122,6 +122,21 @@ class GuildWrapper(ObjectWrapper[discord.Guild]):
     def get_blacklisted_log_channels(self) -> List[int]:
         return self._config.get("logs", {}).get("blacklist", [])
 
+    @property
+    def get_ticket_channel(self) -> Optional[discord.TextChannel]:
+        channel: Optional[discord.TextChannel] = self.get_text_channel(
+            self._config.get("tickets", {}).get("channel", None)
+        )
+        if not channel:
+            logger.warning(
+                "Ticket channel for guild %d has been misconfigured.", self._boxed.id
+            )
+        return channel
+
+    @property
+    def get_max_ticket(self) -> int:
+        return self._config.get("tickets", {}).get("max", 0)
+
     def __eq__(self, value: Any) -> bool:
         """
         Check if an object is equal to the GuildWrapper
