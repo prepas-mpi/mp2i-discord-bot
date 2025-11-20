@@ -1,8 +1,19 @@
-[servers]
-    [servers.server_id]
-        [servers.server_id.logs]
+[guilds]
+    [guilds.server_id]
+
+        [guilds.server_id.roles.Administrator]
+        id = role_id
+
+        [guilds.server_id.roles.Moderator]
+        id = role_id
+
+        [guilds.server_id.logs]
         channel = channel_id
         blacklist = [
             channel_id,
             channel_id
         ]
+
+        [guilds.server_id.tickets]
+        channel = channel_id
+        max = max_desired
