@@ -1,9 +1,9 @@
 import logging
 
 import discord
-from discord.app_commands import describe
+from discord.app_commands import Range, command, describe
 from discord.app_commands.checks import has_permissions
-from discord.ext.commands import Bot, Cog, Context, Range, guild_only, hybrid_command
+from discord.ext.commands import Bot, Cog, guild_only
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -15,7 +15,7 @@ class ModCommands(Cog):
 
     __MAX_DELETED_MESSAGES: int = 100
 
-    @hybrid_command(
+    @command(
         name="clear",
         description="Supprime les `num` messages derniers messages.",
     )
@@ -23,30 +23,42 @@ class ModCommands(Cog):
     @has_permissions(manage_messages=True)
     @guild_only()
     async def clear(
-        self, ctx: Context, num: Range[int, 1, __MAX_DELETED_MESSAGES]
+        self,
+        interaction: discord.Interaction,
+        num: Range[int, 1, __MAX_DELETED_MESSAGES],
     ) -> None:
-        if not isinstance(ctx.channel, discord.TextChannel):
+        if not interaction.channel:
             logger.warning(
-                "User %d can not delete message in channel %d.",
-                ctx.author.id,
-                ctx.channel.id,
+                "User %d can not delete message as they are not in a channel.",
+                interaction.user.id,
             )
-            await ctx.reply("La commande ne supporte pas ce type de canal")
+            await interaction.response.send_message("Vous n'êtes pas dans un salon.")
             return
 
-        replied = await ctx.reply(
+        if not isinstance(interaction.channel, discord.TextChannel):
+            logger.warning(
+                "User %d can not delete message in channel %d.",
+                interaction.user.id,
+                interaction.channel.id,
+            )
+            await interaction.response.send_message(
+                "La commande ne supporte pas ce type de canal"
+            )
+            return
+
+        await interaction.response.send_message(
             "Suppression des messages en cours...", ephemeral=True
         )
-        await ctx.channel.purge(limit=num)
+        await interaction.channel.purge(limit=num)
         logger.info(
             "User %d deleted %d messages in channel %d.",
-            ctx.author.id,
+            interaction.user.id,
             num,
-            ctx.channel.id,
+            interaction.channel.id,
         )
-        await replied.edit(content=f"{num} messages supprimés.")
+        await interaction.edit_original_response(content=f"{num} messages supprimés.")
 
-    @hybrid_command(name="say", description="Envoyer un message au nom du bot")
+    @command(name="say", description="Envoyer un message au nom du bot")
     @describe(
         channel="Canal discord dans lequel envoyer un message",
         message="Message à envoyer à travers le bot",
@@ -54,16 +66,19 @@ class ModCommands(Cog):
     @has_permissions(manage_messages=True)
     @guild_only()
     async def say(
-        self, ctx: Context, channel: discord.TextChannel, message: str
+        self,
+        interaction: discord.Interaction,
+        channel: discord.TextChannel,
+        message: str,
     ) -> None:
         logger.info(
             "User %d send message through bot in channel %d. Message: %s",
-            ctx.author.id,
+            interaction.user.id,
             channel.id,
             message,
         )
         await channel.send(message)
-        await ctx.reply(
+        await interaction.response.send_message(
             f"Un message a été envoyé dans le salon {channel.jump_url}", ephemeral=True
         )
 
