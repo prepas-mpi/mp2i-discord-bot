@@ -229,7 +229,7 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
         await self._open_ticket(interaction, member_wrapper, level, interaction.user)
 
     @Cog.listener("on_interaction")
-    async def other_get_level_ticket(self, interaction: discord.Interaction):
+    async def other_get_level_ticket(self, interaction: discord.Interaction) -> None:
         """
         Let a user select the level of a ticket
 
@@ -267,7 +267,7 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
         await interaction.response.send_message(view=view, ephemeral=True)
 
     @Cog.listener("on_interaction")
-    async def other_open_ticket(self, interaction: discord.Interaction):
+    async def other_open_ticket(self, interaction: discord.Interaction) -> None:
         """
         Let a user create a ticket of the desired level
 
@@ -313,7 +313,7 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
         )
 
     @Cog.listener("on_interaction")
-    async def close_ticket(self, interaction: discord.Interaction):
+    async def close_ticket(self, interaction: discord.Interaction) -> None:
         """
         Let staff close a ticket
 
