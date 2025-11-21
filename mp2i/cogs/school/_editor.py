@@ -70,7 +70,7 @@ class SchoolNameModal(ui.Modal, title="Entrez un nouveau nom"):
     Modal to get school's new name
     """
 
-    name = ui.TextInput(
+    name: ui.TextInput = ui.TextInput(
         label="Nom", style=discord.TextStyle.short, required=True, max_length=255
     )
 
@@ -87,8 +87,8 @@ class SchoolNameModal(ui.Modal, title="Entrez un nouveau nom"):
             The school to be updated
         """
         super().__init__()
-        self._settings = settings
-        self._school = school
+        self._settings: "SchoolSettings" = settings
+        self._school: SchoolModel = school
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
         """
@@ -141,7 +141,7 @@ class SchoolNameButton(ui.Button["SchoolSettings"]):
     Button to trigger a modal to get user's input
     """
 
-    def __init__(self, settings: "SchoolSettings", school: SchoolModel) -> None:
+    def __init__(self, school: SchoolModel) -> None:
         """
         Initialize parent classes and variables
 
@@ -159,8 +159,7 @@ class SchoolNameButton(ui.Button["SchoolSettings"]):
             custom_id="school::settings::name",
             emoji="✏️",
         )
-        self._settings = settings
-        self._school = school
+        self._school: SchoolModel = school
 
     async def callback(self, interaction: discord.Interaction) -> None:
         """
@@ -171,9 +170,9 @@ class SchoolNameButton(ui.Button["SchoolSettings"]):
         interaction : discord.Interaction
             The button interaction
         """
-        await interaction.response.send_modal(
-            SchoolNameModal(self._settings, self._school)
-        )
+        if not self._view:
+            return
+        await interaction.response.send_modal(SchoolNameModal(self._view, self._school))
 
 
 class SchoolThreadSelector(ui.ChannelSelect["SchoolSettings"]):
@@ -197,8 +196,7 @@ class SchoolThreadSelector(ui.ChannelSelect["SchoolSettings"]):
             placeholder="Choisissez un fil de discussion",
             channel_types=[discord.ChannelType.public_thread],
         )
-        self._settings = settings
-        self._school = school
+        self._school: SchoolModel = school
 
     async def callback(self, interaction: discord.Interaction) -> None:
         """
@@ -209,6 +207,8 @@ class SchoolThreadSelector(ui.ChannelSelect["SchoolSettings"]):
         interaction : discord.Interaction
             The selection interaction
         """
+        if not self._view:
+            return
         database_executor.execute(
             update(SchoolModel)
             .where(
@@ -217,7 +217,7 @@ class SchoolThreadSelector(ui.ChannelSelect["SchoolSettings"]):
             .values(thread_id=self.values[0].id)
         )
         self._school.thread_id = self.values[0].id
-        self._settings._refresh_settings()
+        self._view._refresh_settings()
         logger.info(
             "User %d has changed thread of school %d to thread %d.",
             interaction.user.id,
@@ -225,7 +225,7 @@ class SchoolThreadSelector(ui.ChannelSelect["SchoolSettings"]):
             self.values[0].id,
         )
         await interaction.response.edit_message(
-            view=self._settings, allowed_mentions=discord.AllowedMentions.none()
+            view=self._view, allowed_mentions=discord.AllowedMentions.none()
         )
 
 
@@ -257,9 +257,8 @@ class SchoolReferentButton(ui.Button["SchoolSettings"]):
             custom_id="school::settings::rmrf",
             emoji="❌",
         )
-        self._guild = guild
-        self._settings = settings
-        self._school = school
+        self._guild: GuildWrapper = guild
+        self._school: SchoolModel = school
 
     async def callback(self, interaction: discord.Interaction) -> None:
         """
@@ -270,6 +269,8 @@ class SchoolReferentButton(ui.Button["SchoolSettings"]):
         interaction : discord.Interaction
             The button interaction
         """
+        if not self._view:
+            return
         if not self._school.referent:
             await interaction.response.send_message(
                 "Cet établissement n'a pas de référent.", ephemeral=True
@@ -304,14 +305,14 @@ class SchoolReferentButton(ui.Button["SchoolSettings"]):
         )
         self._school.referent_id = None
         self._school.referent = None
-        self._settings._refresh_settings()
+        self._view._refresh_settings()
         logger.info(
             "User %d has removed referent of school %d.",
             interaction.user.id,
             self._school.school_id,
         )
         await interaction.response.edit_message(
-            view=self._settings, allowed_mentions=discord.AllowedMentions.none()
+            view=self._view, allowed_mentions=discord.AllowedMentions.none()
         )
 
 
@@ -320,9 +321,7 @@ class SchoolReferentSelector(ui.UserSelect["SchoolSettings"]):
     Select a new referent
     """
 
-    def __init__(
-        self, guild: GuildWrapper, settings: "SchoolSettings", school: SchoolModel
-    ):
+    def __init__(self, guild: GuildWrapper, school: SchoolModel):
         """
         Initialize parent classes and variables
 
@@ -340,9 +339,8 @@ class SchoolReferentSelector(ui.UserSelect["SchoolSettings"]):
         super().__init__(
             placeholder="Choisissez un référent",
         )
-        self._guild = guild
-        self._settings = settings
-        self._school = school
+        self._guild: GuildWrapper = guild
+        self._school: SchoolModel = school
 
     async def callback(self, interaction: discord.Interaction) -> None:
         """
@@ -353,6 +351,8 @@ class SchoolReferentSelector(ui.UserSelect["SchoolSettings"]):
         interaction : discord.Interaction
             The selection interaction
         """
+        if not self._view:
+            return
         member: discord.Member | discord.User = self.values[0]
         if member.bot:
             await interaction.response.send_message(
@@ -406,7 +406,7 @@ class SchoolReferentSelector(ui.UserSelect["SchoolSettings"]):
             logger.error(
                 "Could not add %s role to user %d.", role.name, member_wrapper.id
             )
-        self._settings._refresh_settings()
+        self._view._refresh_settings()
         logger.info(
             "User %d has changed referent of school %d to user %d.",
             interaction.user.id,
@@ -414,7 +414,7 @@ class SchoolReferentSelector(ui.UserSelect["SchoolSettings"]):
             member_wrapper.id,
         )
         await interaction.response.edit_message(
-            view=self._settings, allowed_mentions=discord.AllowedMentions.none()
+            view=self._view, allowed_mentions=discord.AllowedMentions.none()
         )
 
 
@@ -454,7 +454,7 @@ class SchoolSettings(ui.LayoutView):
         container.add_item(
             ui.Section(
                 ui.TextDisplay(f"### Nom actuel\n{self._school.school_name}"),
-                accessory=SchoolNameButton(self, self._school),
+                accessory=SchoolNameButton(self._school),
             )
         )
         container.add_item(ui.TextDisplay(f"### Identifiant\n{self._school.school_id}"))
@@ -481,7 +481,5 @@ class SchoolSettings(ui.LayoutView):
         else:
             container.add_item(ui.TextDisplay("### Référent actuel\nAucun"))
         self.add_item(container)
-        self.add_item(ui.ActionRow(SchoolThreadSelector(self, self._school)))
-        self.add_item(
-            ui.ActionRow(SchoolReferentSelector(self._guild, self, self._school))
-        )
+        self.add_item(ui.ActionRow(SchoolThreadSelector(self._school)))
+        self.add_item(ui.ActionRow(SchoolReferentSelector(self._guild, self._school)))
