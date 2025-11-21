@@ -177,7 +177,11 @@ class SchoolNameButton(ui.Button["SchoolSettings"]):
 
 
 class SchoolThreadSelector(ui.ChannelSelect["SchoolSettings"]):
-    def __init__(self, settings: "SchoolSettings", school: SchoolModel):
+    """
+    Selector to choose a public thread as thread for a school
+    """
+
+    def __init__(self, school: SchoolModel):
         """
         Initialize parent classes and variables
 
