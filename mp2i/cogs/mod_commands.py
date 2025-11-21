@@ -1,7 +1,7 @@
 import logging
 
 import discord
-from discord.app_commands import Range, command, describe
+from discord.app_commands import Range, command, describe, rename
 from discord.ext.commands import Bot, Cog, guild_only
 
 from mp2i.utils.discord import has_any_role
@@ -21,6 +21,7 @@ class ModCommands(Cog):
         description="Supprime les `num` messages derniers messages.",
     )
     @describe(num="Nombre de messages à supprimer")
+    @rename(num="nombre")
     @guild_only()
     @has_any_role("Administrateur", "Modérateur")
     async def clear(
@@ -74,6 +75,7 @@ class ModCommands(Cog):
         channel="Canal discord dans lequel envoyer un message",
         message="Message à envoyer à travers le bot",
     )
+    @rename(channel="salon")
     @guild_only()
     @has_any_role("Administrateur", "Modérateur")
     async def say(

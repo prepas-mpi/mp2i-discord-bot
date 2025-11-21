@@ -3,7 +3,7 @@ from typing import List, Optional
 
 import discord
 import discord.ui as ui
-from discord.app_commands import MissingAnyRole, command, describe, guild_only
+from discord.app_commands import MissingAnyRole, command, describe, guild_only, rename
 from discord.ext.commands import Bot, Cog, GroupCog
 from sqlalchemy import Result, insert, select, update
 
@@ -184,6 +184,7 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
     @describe(
         member="Membre concerné par le ticket", level="Niveau d'incidence du ticket"
     )
+    @rename(member="membre", level="niveau")
     @has_any_role("Administrateur", "Modérateur")
     async def open_ticket(
         self,
