@@ -9,6 +9,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from mp2i.database.models.promotion import PromotionModel
 from mp2i.database.models.ticket import TicketModel
 
 from . import Base
@@ -59,6 +60,10 @@ class MemberModel(Base):
         Integer(),
         nullable=True,
         info=dict(label="Profile Colour", hint="Member's profile colour"),
+    )
+
+    promotions: Mapped[List[PromotionModel]] = relationship(
+        "PromotionModel", lazy="selectin"
     )
 
     tickets: Mapped[List[TicketModel]] = relationship("TicketModel", lazy="selectin")

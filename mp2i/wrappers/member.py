@@ -7,6 +7,7 @@ from sqlalchemy import Result, insert, select, update
 import mp2i.database.executor as database_executor
 from mp2i.database.exceptions import InsertException, ReturningElementException
 from mp2i.database.models.member import MemberModel
+from mp2i.database.models.promotion import PromotionModel
 from mp2i.database.models.ticket import TicketModel
 
 from . import ObjectWrapper
@@ -108,6 +109,10 @@ class MemberWrapper(ObjectWrapper[discord.Member]):
         return member_model
 
     @property
+    def as_model(self) -> Optional[MemberModel]:
+        return self.__model
+
+    @property
     def member_id(self) -> int:
         if not self.__model:
             return -1
@@ -161,6 +166,12 @@ class MemberWrapper(ObjectWrapper[discord.Member]):
         if not self.__model:
             return []
         return self.__model.tickets
+
+    @property
+    def promotions(self) -> List[PromotionModel]:
+        if not self.__model:
+            return []
+        return self.__model.promotions
 
     def __eq__(self, value: Any) -> bool:
         """

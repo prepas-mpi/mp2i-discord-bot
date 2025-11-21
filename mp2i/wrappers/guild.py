@@ -1,5 +1,5 @@
 import logging
-from typing import Any, List, Optional
+from typing import Any, List, Optional, TypeVar
 
 import discord
 from sqlalchemy import Result, delete, insert, select
@@ -12,6 +12,8 @@ from mp2i.utils.config import get_config_deep
 from . import ObjectWrapper
 
 logger: logging.Logger = logging.getLogger(__name__)
+
+T = TypeVar("T")
 
 
 class GuildWrapper(ObjectWrapper[discord.Guild]):
@@ -127,8 +129,7 @@ class GuildWrapper(ObjectWrapper[discord.Guild]):
     @property
     def get_ticket_channel(self) -> Optional[discord.TextChannel]:
         channel: Optional[discord.TextChannel] = self.get_any_channel(
-            self._config.get("tickets", {}).get("channel", None),
-            discord.TextChannel
+            self._config.get("tickets", {}).get("channel", None), discord.TextChannel
         )
         if not channel:
             logger.warning(
@@ -139,6 +140,10 @@ class GuildWrapper(ObjectWrapper[discord.Guild]):
     @property
     def get_max_ticket(self) -> int:
         return self._config.get("tickets", {}).get("max", 0)
+
+    @property
+    def get_max_promotions(self) -> int:
+        return self._config.get("promotions", {}).get("max", 0)
 
     def __eq__(self, value: Any) -> bool:
         """

@@ -8,6 +8,9 @@ from .models import Base
 # Import so that models are registered in Base's metadata
 from .models.guild import GuildModel as GuildModel
 from .models.member import MemberModel as MemberModel
+from .models.promotion import PromotionModel as PromotionModel
+from .models.school import SchoolModel as SchoolModel
+from .models.ticket import TicketModel as TicketModel
 from .models.user import UserModel as UserModel
 
 logger: logging.Logger = logging.getLogger(__name__)
