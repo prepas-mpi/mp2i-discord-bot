@@ -114,12 +114,7 @@ class Leaderboard(Cog):
             )
 
         first_member: MemberWrapper = sorted_members[0]
-        colour: Optional[int] = first_member.profile_colour
-        if not colour:
-            for role in reversed(first_member.roles):
-                if f"{role.colour}" != "#000000":
-                    colour = role.colour
-                    break
+        colour: Optional[int] = first_member.profile_colour or first_member.colour
 
         embed_paginator: EmbedPaginator = EmbedPaginator(
             author=ctx.author.id,
