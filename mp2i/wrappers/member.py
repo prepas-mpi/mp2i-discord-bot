@@ -155,7 +155,7 @@ class MemberWrapper(ObjectWrapper[discord.Member]):
         return self.__model.profile_colour
 
     @profile_colour.setter
-    def profile_colour(self, colour: int) -> None:
+    def profile_colour(self, colour: Optional[int]) -> None:
         if not self.__model:
             return
         self.__model.profile_colour = colour
