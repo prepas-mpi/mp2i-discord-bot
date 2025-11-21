@@ -73,9 +73,7 @@ class SchoolModel(Base):
         info=dict(label="Referent ID", hint="Member's id of the school referent"),
     )
 
-    referent: Mapped[Optional[MemberModel]] = relationship(
-        "MemberModel", lazy="selectin"
-    )
+    referent: Mapped[Optional[MemberModel]] = relationship("MemberModel", lazy="joined")
 
     def __repr__(self) -> str:
         return "School(school_name={name},)".format(name=self.school_name)
