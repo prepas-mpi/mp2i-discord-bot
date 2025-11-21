@@ -16,6 +16,25 @@ logger: logging.Logger = logging.getLogger(__name__)
 async def _remove_old_referent(
     interaction: discord.Interaction, guild: GuildWrapper, school: SchoolModel
 ) -> Optional[discord.Role]:
+    """
+    Remove referent from a school
+
+    Parameters
+    ----------
+    interaction : discord.Interaction
+        The interaction leading to the call of this function
+
+    guild : GuildWrapper
+        Wrapper of the guild
+
+    school : SchoolModel
+        The concerned school
+
+    Returns
+    -------
+    Optional[discord.Role]
+        The role of the referent if found and all went well
+    """
     role_name: str = "Référent " + (
         "CPGE" if school.school_type == SchoolType.CPGE else "École"
     )
