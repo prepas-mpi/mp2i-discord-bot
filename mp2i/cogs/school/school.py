@@ -27,6 +27,55 @@ from ._editor import SchoolSettings, _remove_old_referent
 logger: logging.Logger = logging.getLogger(__name__)
 
 
+async def _find_school(
+    interaction: discord.Interaction, name: str, invert: bool = False
+) -> Optional[SchoolModel]:
+    """
+    Get school from database if exists and answer to interaction
+
+    Parameters
+    ----------
+    interaction : discord.Interaction
+        The slash command interaction
+
+    name : str
+        The school name
+
+    invert : bool
+        Answer if found (True) or if not found (False)
+
+    Returns
+    -------
+    Optional[SchoolModel]
+        SchoolModel if found in database, None otherwise
+    """
+    if not interaction.guild:
+        return None
+    result: Optional[Result[SchoolModel]] = database_executor.execute(
+        select(SchoolModel).where(
+            SchoolModel.guild_id == interaction.guild.id,
+            SchoolModel.school_name == name,
+        )
+    )
+
+    if not result:
+        await interaction.edit_original_response(
+            content="Impossible de contacter la base de données."
+        )
+        return None
+    if (school := result.scalar_one_or_none()) and invert:
+        await interaction.edit_original_response(
+            content="Une établissement avec ce nom existe déjà."
+        )
+        return school
+    elif not school and not invert:
+        await interaction.edit_original_response(
+            content="Aucun établissement avec ce nom n'a été trouvé."
+        )
+        return None
+    return school
+
+
 async def add_member_to_school(
     interaction: discord.Interaction,
     member: MemberWrapper,
@@ -123,6 +172,43 @@ async def remove_member_from_school(
     )
 
 
+async def _autocomplete_schools_name(
+    interaction: discord.Interaction, current: str
+) -> List[Choice[str]]:
+    """
+    Autocomplete for school names
+
+    Parameters
+    ----------
+    interaction : discord.Interaction
+        The slash command concerned
+
+    current : str
+        The name written by the member at that time
+
+    Returns
+    -------
+    List[Choice[str]]
+        List of choices
+    """
+    await interaction.response.defer()
+
+    result: Optional[Result[SchoolModel]] = database_executor.execute(
+        select(SchoolModel)
+        .where(SchoolModel.school_name.istartswith(current))
+        .order_by(SchoolModel.school_name)
+        .limit(20)
+    )
+
+    if not result:
+        return []
+
+    return [
+        Choice(name=school.school_name, value=school.school_name)
+        for school in map(lambda row: row.tuple()[0], result.all())
+    ]
+
+
 @guild_only()
 class School(GroupCog, name="school", description="Gestion des établissements"):
     """
@@ -145,90 +231,6 @@ class School(GroupCog, name="school", description="Gestion des établissements")
         )
         ctx_menu.guild_only = True
         bot.tree.add_command(ctx_menu)
-
-    async def _find_school(
-        self, interaction: discord.Interaction, name: str, invert: bool = False
-    ) -> Optional[SchoolModel]:
-        """
-        Get school from database if exists and answer to interaction
-
-        Parameters
-        ----------
-        interaction : discord.Interaction
-            The slash command interaction
-
-        name : str
-            The school name
-
-        invert : bool
-            Answer if found (True) or if not found (False)
-
-        Returns
-        -------
-        Optional[SchoolModel]
-            SchoolModel if found in database, None otherwise
-        """
-        if not interaction.guild:
-            return None
-        result: Optional[Result[SchoolModel]] = database_executor.execute(
-            select(SchoolModel).where(
-                SchoolModel.guild_id == interaction.guild.id,
-                SchoolModel.school_name == name,
-            )
-        )
-
-        if not result:
-            await interaction.edit_original_response(
-                content="Impossible de contacter la base de données."
-            )
-            return None
-        if (school := result.scalar_one_or_none()) and invert:
-            await interaction.edit_original_response(
-                content="Une établissement avec ce nom existe déjà."
-            )
-            return school
-        elif not school and not invert:
-            await interaction.edit_original_response(
-                content="Aucun établissement avec ce nom n'a été trouvé."
-            )
-            return None
-        return school
-
-    async def _autocomplete_schools_name(
-        self, interaction: discord.Interaction, current: str
-    ) -> List[Choice[str]]:
-        """
-        Autocomplete for school names
-
-        Parameters
-        ----------
-        interaction : discord.Interaction
-            The slash command concerned
-
-        current : str
-            The name written by the member at that time
-
-        Returns
-        -------
-        List[Choice[str]]
-            List of choices
-        """
-        await interaction.response.defer()
-
-        result: Optional[Result[SchoolModel]] = database_executor.execute(
-            select(SchoolModel)
-            .where(SchoolModel.school_name.istartswith(current))
-            .order_by(SchoolModel.school_name)
-            .limit(20)
-        )
-
-        if not result:
-            return []
-
-        return [
-            Choice(name=school.school_name, value=school.school_name)
-            for school in map(lambda row: row.tuple()[0], result.all())
-        ]
 
     @command(name="create", description="Créer un établissement")
     @describe(
@@ -264,7 +266,7 @@ class School(GroupCog, name="school", description="Gestion des établissements")
 
         await interaction.response.defer()
 
-        if await self._find_school(interaction, name, True):
+        if await _find_school(interaction, name, True):
             return
 
         database_executor.execute(
@@ -300,7 +302,7 @@ class School(GroupCog, name="school", description="Gestion des établissements")
 
         await interaction.response.defer()
 
-        if not (school := await self._find_school(interaction, name)):
+        if not (school := await _find_school(interaction, name)):
             return
 
         database_executor.execute(
@@ -337,7 +339,7 @@ class School(GroupCog, name="school", description="Gestion des établissements")
 
         guild: GuildWrapper = GuildWrapper(interaction.guild, fetch=False)
 
-        if not (school := await self._find_school(interaction, name)):
+        if not (school := await _find_school(interaction, name)):
             return
         await interaction.edit_original_response(
             view=SchoolSettings(guild, school),
@@ -375,7 +377,7 @@ class School(GroupCog, name="school", description="Gestion des établissements")
                 )
                 return
 
-        if not (school := await self._find_school(interaction, name)):
+        if not (school := await _find_school(interaction, name)):
             return
 
         prom: Optional[PromotionModel] = await add_member_to_school(
@@ -450,7 +452,7 @@ class School(GroupCog, name="school", description="Gestion des établissements")
                 )
                 return
 
-        if not (school := await self._find_school(interaction, name)):
+        if not (school := await _find_school(interaction, name)):
             return
 
         member_wrapper: MemberWrapper = MemberWrapper(member)
