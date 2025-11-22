@@ -27,6 +27,102 @@ from ._editor import SchoolSettings, _remove_old_referent
 logger: logging.Logger = logging.getLogger(__name__)
 
 
+async def add_member_to_school(
+    interaction: discord.Interaction,
+    member: MemberWrapper,
+    school: SchoolModel,
+    year: Optional[int],
+) -> Optional[PromotionModel]:
+    """
+    Add a member to a school with the year
+
+    Parameters
+    ----------
+    interaction : discord.Interaction
+        The initial interaction that lead to this remove
+
+    member : MemberWrapper
+        The concerned member
+
+    school : SchoolModel
+        The concerned school
+    """
+    if not interaction.guild:
+        return
+    guild: GuildWrapper = GuildWrapper(interaction.guild, fetch=False)
+    if len(member.promotions) >= guild.get_max_promotions:
+        await interaction.edit_original_response(
+            content=f"Pas plus de {guild.get_max_promotions} promotions."
+        )
+        return
+
+    result: Optional[Result[PromotionModel]] = database_executor.execute(
+        insert_psql(PromotionModel)
+        .values(
+            school_id=school.school_id,
+            member_id=member.member_id,
+            promotion_year=year,
+        )
+        .on_conflict_do_update(
+            index_elements=["promotion_id"], set_={"promotion_year": year}
+        )
+        .returning(PromotionModel)
+    )
+    if not result:
+        return None
+    if school.thread_id:
+        channel: Optional[discord.Thread] = guild.get_any_channel(
+            school.thread_id, discord.Thread
+        )
+        if channel:
+            await channel.add_user(member._boxed)
+    return result.scalar()
+
+
+async def remove_member_from_school(
+    interaction: discord.Interaction, member: MemberWrapper, promotion: PromotionModel
+) -> None:
+    """
+    Remove a member from a school with its promotion
+
+    Parameters
+    ----------
+    interaction : discord.Interaction
+        The initial interaction that lead to this remove
+
+    member : MemberWrapper
+        The concerned member
+
+    promotion : PromotionModel
+        The concerned promotion
+    """
+    if not interaction.guild:
+        return
+    if (
+        promotion.school.referent
+        and promotion.school.referent.member_id == member.member_id
+    ):
+        logger.info(
+            "User %d is no longer referent of school %d",
+            member.id,
+            promotion.school_id,
+        )
+        if await _remove_old_referent(
+            interaction, GuildWrapper(interaction.guild, fetch=False), promotion.school
+        ):
+            database_executor.execute(
+                update(SchoolModel)
+                .values(referent_id=None)
+                .where(SchoolModel.school_id == promotion.school_id)
+            )
+
+    database_executor.execute(
+        delete(PromotionModel).where(
+            PromotionModel.promotion_id == promotion.promotion_id
+        )
+    )
+
+
 @guild_only()
 class School(GroupCog, name="school", description="Gestion des établissements"):
     """
@@ -281,31 +377,13 @@ class School(GroupCog, name="school", description="Gestion des établissements")
 
         if not (school := await self._find_school(interaction, name)):
             return
-        guild: GuildWrapper = GuildWrapper(interaction.guild)
-        member_wrapper: MemberWrapper = MemberWrapper(member)
-        if len(member_wrapper.promotions) >= guild.get_max_promotions:
-            await interaction.edit_original_response(
-                content=f"Pas plus de {guild.get_max_promotions} promotions."
-            )
+
+        prom: Optional[PromotionModel] = await add_member_to_school(
+            interaction, MemberWrapper(member), school, year
+        )
+        if not prom:
             return
 
-        database_executor.execute(
-            insert_psql(PromotionModel)
-            .values(
-                school_id=school.school_id,
-                member_id=member_wrapper.member_id,
-                promotion_year=year,
-            )
-            .on_conflict_do_update(
-                index_elements=["promotion_id"], set_={"promotion_year": year}
-            )
-        )
-        if school.thread_id:
-            channel: Optional[discord.Thread] = guild.get_any_channel(
-                school.thread_id, discord.Thread
-            )
-            if channel:
-                await channel.add_user(member)
         if interaction.user.id == member.id:
             logger.info("User %d is now part of school %d", member.id, school.school_id)
             await interaction.edit_original_response(
@@ -388,26 +466,7 @@ class School(GroupCog, name="school", description="Gestion des établissements")
             )
             return
 
-        if school.referent and school.referent.member_id == member_wrapper.member_id:
-            logger.info(
-                "User %d is no longer referent of school %d",
-                member.id,
-                school.school_id,
-            )
-            await _remove_old_referent(
-                interaction, GuildWrapper(interaction.guild), school
-            )
-            database_executor.execute(
-                update(SchoolModel)
-                .values(referent_id=None)
-                .where(SchoolModel.school_id == school.school_id)
-            )
-
-        database_executor.execute(
-            delete(PromotionModel).where(
-                PromotionModel.promotion_id == promotions[0].promotion_id
-            )
-        )
+        await remove_member_from_school(interaction, member_wrapper, promotions[0])
 
         if interaction.user.id == member.id:
             logger.info(
