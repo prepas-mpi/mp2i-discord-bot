@@ -17,3 +17,7 @@
         [guilds.server_id.tickets]
         channel = channel_id
         max = max_desired
+
+        [guilds.server_id.promotions]
+        # number of school that a user can joined at most
+        max = max_promotions
