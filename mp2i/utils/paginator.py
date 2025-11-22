@@ -21,7 +21,7 @@ class Paginator(ABC, Generic[T]):
         author: int,
         title: str,
         entries: List[T],
-        colour: int,
+        colour: Optional[int] = None,
         entries_per_page: int = 10,
         page: int = 1,
         timestamp: Optional[datetime] = None,
@@ -33,7 +33,7 @@ class Paginator(ABC, Generic[T]):
         self.author: int = author
         self.title: str = title
         self.entries: List[T] = entries
-        self.colour: int = colour
+        self.colour: Optional[int] = colour
         self.entries_per_page: int = entries_per_page
         self.page: int = page
         self.timestamp: datetime = timestamp or datetime.now()
@@ -195,7 +195,7 @@ class EmbedPaginator(Paginator[str], ui.View):
         title: str,
         header: str,
         entries: List[str],
-        colour: int,
+        colour: Optional[int] = None,
         entries_per_page: int = 10,
         page: int = 1,
         timestamp: Optional[datetime] = None,
@@ -263,7 +263,7 @@ class ComponentsPaginator(Paginator[ui.Item[Any]], ui.LayoutView):
         author: int,
         title: str,
         entries: List[ui.Item[Any]],
-        colour: int,
+        colour: Optional[int] = None,
         entries_per_page: int = 10,
         page: int = 1,
         timestamp: Optional[datetime] = None,
@@ -308,7 +308,9 @@ class ComponentsPaginator(Paginator[ui.Item[Any]], ui.LayoutView):
             container.add_item(ui.Separator(spacing=discord.SeparatorSpacing.large))
             container.add_item(ui.ActionRow(*self._create_buttons()))
 
-        container.accent_colour = self.colour
+        if self.colour:
+            container.accent_colour = self.colour
+
         self.add_item(container)
 
         return (None, self)
