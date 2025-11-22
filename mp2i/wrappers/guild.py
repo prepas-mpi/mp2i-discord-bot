@@ -127,6 +127,17 @@ class GuildWrapper(ObjectWrapper[discord.Guild]):
         return self._config.get("logs", {}).get("blacklist", [])
 
     @property
+    def get_sanctions_channel(self) -> Optional[discord.TextChannel]:
+        channel: Optional[discord.TextChannel] = self.get_any_channel(
+            self._config.get("sanctions", {}).get("channel", None), discord.TextChannel
+        )
+        if not channel:
+            logger.warning(
+                "Sanction channel for guild %d has been misconfigured.", self._boxed.id
+            )
+        return channel
+
+    @property
     def get_ticket_channel(self) -> Optional[discord.TextChannel]:
         channel: Optional[discord.TextChannel] = self.get_any_channel(
             self._config.get("tickets", {}).get("channel", None), discord.TextChannel

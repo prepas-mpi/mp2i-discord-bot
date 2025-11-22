@@ -4,6 +4,7 @@ import logging.config as logging_config
 import os
 
 import dotenv
+import humanize.i18n as i18n
 
 import mp2i.utils.config as config
 
@@ -18,6 +19,7 @@ async def main() -> None:
     Main function of program
     """
     dotenv.load_dotenv()
+    i18n.activate("fr_FR")
 
     try:
         if not os.path.exists("logs"):

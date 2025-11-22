@@ -5,6 +5,7 @@ from sqlalchemy import Result, insert, select
 
 import mp2i.database.executor as database_executor
 from mp2i.database.exceptions import InsertException, ReturningElementException
+from mp2i.database.models.member import MemberModel
 from mp2i.database.models.user import UserModel
 
 from . import ObjectWrapper
@@ -68,6 +69,17 @@ class UserWrapper(ObjectWrapper[discord.User]):
 
         self.__model = user_model
         return user_model
+
+    def as_member_model(self, guild: discord.Guild) -> Optional[MemberModel]:
+        result: Optional[Result[MemberModel]] = database_executor.execute(
+            select(MemberModel).where(
+                MemberModel.guild_id == guild.id,
+                MemberModel.user_id == self._boxed.id,
+            )
+        )
+        if not result:
+            return None
+        return result.scalar_one_or_none()
 
     def __eq__(self, value: Any) -> bool:
         """
