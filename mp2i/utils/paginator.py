@@ -110,10 +110,16 @@ class Paginator(ABC, Generic[T]):
         (embed, view) = self.create_embeds_and_view()
 
         try:
-            await interaction.response.edit_message(embed=embed, view=view)
+            await interaction.response.edit_message(
+                embed=embed, view=view, allowed_mentions=discord.AllowedMentions.none()
+            )
         except Exception:
             try:
-                await interaction.edit_original_response(embed=embed, view=view)
+                await interaction.edit_original_response(
+                    embed=embed,
+                    view=view,
+                    allowed_mentions=discord.AllowedMentions.none(),
+                )
             except Exception:
                 logger.warning("Could not update paginator")
                 pass
@@ -177,11 +183,14 @@ class Paginator(ABC, Generic[T]):
         """
         (embed, view) = self.create_embeds_and_view()
         if self.max_page_number <= 1:
-            await interaction.edit_original_response(embed=embed, view=view)
+            await interaction.edit_original_response(
+                embed=embed, view=view, allowed_mentions=discord.AllowedMentions.none()
+            )
             return
 
-        await interaction.edit_original_response(embed=embed, view=view)
-        self._message = await interaction.original_response()
+        await interaction.edit_original_response(
+            embed=embed, view=view, allowed_mentions=discord.AllowedMentions.none()
+        )
 
 
 class EmbedPaginator(Paginator[str], ui.View):
