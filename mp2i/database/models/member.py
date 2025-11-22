@@ -5,11 +5,13 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    Sequence,
     UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from mp2i.database.models.promotion import PromotionModel
+from mp2i.database.models.sanction import SanctionModel
 from mp2i.database.models.ticket import TicketModel
 
 from . import Base
@@ -28,6 +30,7 @@ class MemberModel(Base):
 
     member_id: Mapped[int] = mapped_column(
         BigInteger(),
+        Sequence("member_id_seq"),
         primary_key=True,
         nullable=False,
         info=dict(label="Member ID", hint="Unique member ID in database."),
@@ -64,6 +67,13 @@ class MemberModel(Base):
 
     promotions: Mapped[List[PromotionModel]] = relationship(
         "PromotionModel", lazy="selectin"
+    )
+
+    sanctions: Mapped[List[SanctionModel]] = relationship(
+        "SanctionModel",
+        lazy="selectin",
+        foreign_keys=[SanctionModel.victim_id],
+        back_populates="victim",
     )
 
     tickets: Mapped[List[TicketModel]] = relationship("TicketModel", lazy="selectin")

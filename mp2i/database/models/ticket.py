@@ -1,13 +1,7 @@
 from enum import Enum as PyEnum
 from typing import Any
 
-from sqlalchemy import (
-    BigInteger,
-    Enum,
-    ForeignKey,
-    Index,
-    Integer,
-)
+from sqlalchemy import BigInteger, Enum, ForeignKey, Index, Integer, Sequence
 from sqlalchemy.orm import Mapped, mapped_column
 
 from . import Base
@@ -31,6 +25,7 @@ class TicketModel(Base):
 
     ticket_id: Mapped[int] = mapped_column(
         BigInteger(),
+        Sequence("ticket_id_seq"),
         primary_key=True,
         nullable=False,
         info=dict(label="Ticket ID", hint="Unique ticket ID in database."),

@@ -1,7 +1,7 @@
 from enum import Enum as PyEnum
 from typing import TYPE_CHECKING, Any, Optional
 
-from sqlalchemy import VARCHAR, BigInteger, Enum, ForeignKey, Index
+from sqlalchemy import VARCHAR, BigInteger, Enum, ForeignKey, Index, Sequence
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from . import Base
@@ -31,6 +31,7 @@ class SchoolModel(Base):
 
     school_id: Mapped[int] = mapped_column(
         BigInteger(),
+        Sequence("school_id_seq"),
         primary_key=True,
         nullable=False,
         info=(dict(label="School ID", hint="Unique school ID")),
