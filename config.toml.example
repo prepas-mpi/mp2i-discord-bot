@@ -14,6 +14,9 @@
             channel_id
         ]
 
+        [guilds.server_id.sanctions]
+        channel = channel_id
+
         [guilds.server_id.tickets]
         channel = channel_id
         max = max_desired
