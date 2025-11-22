@@ -24,18 +24,6 @@ class GuildRegistration(Cog):
         async for member in guild.fetch_members():
             MemberWrapper(member).register()
 
-    @Cog.listener("on_guild_leave")
-    async def unregister_guild(self, guild: discord.Guild) -> None:
-        """
-        Unregister guild
-
-        Parameters
-        ----------
-        guild : discord.Guild
-            the guild that has just been left
-        """
-        GuildWrapper(guild).delete()
-
 
 async def setup(bot: Bot) -> None:
     """
