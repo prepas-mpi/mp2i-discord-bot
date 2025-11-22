@@ -34,7 +34,7 @@ async def has_any_roles_predicate(
         logger.warning("Using has_config_role in a non guild context.")
         raise MissingAnyRole(list(roles))
 
-    guild: GuildWrapper = GuildWrapper(interaction.guild)
+    guild: GuildWrapper = GuildWrapper(interaction.guild, fetch=False)
     member: discord.Member | discord.User = interaction.user
     if isinstance(member, discord.User):
         logger.error("User is not member in the guild %d.", guild.id)
