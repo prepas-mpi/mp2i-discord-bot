@@ -35,6 +35,6 @@ class Bot(commands.Bot):
                 try:
                     await self.load_extension(module_path)
                 except Exception as e:
-                    logger.fatal("Failed to load %s: %s", module_path, e)
+                    logger.fatal("Failed to load %s: %s", module_path, e, exc_info=True)
 
         await self.tree.sync()

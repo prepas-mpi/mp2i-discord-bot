@@ -59,4 +59,5 @@ async def setup(bot: Bot) -> None:
                 interaction.user.id,
                 interaction.command.qualified_name,
                 error,
+                exc_info=True,
             )
