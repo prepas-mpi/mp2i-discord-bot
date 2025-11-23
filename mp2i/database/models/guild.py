@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 
 from sqlalchemy import BigInteger
 from sqlalchemy.orm import Mapped, mapped_column
@@ -20,6 +20,15 @@ class GuildModel(Base):
         info=dict(
             label="Guild ID",
             hint="Unique discord ID of the guild.",
+        ),
+    )
+
+    suggestion_message_id: Mapped[Optional[int]] = mapped_column(
+        BigInteger(),
+        nullable=True,
+        info=dict(
+            label="Suggestion Message ID",
+            hint="Unique suggestion message ID of the guild.",
         ),
     )
 

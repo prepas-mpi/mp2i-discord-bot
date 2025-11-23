@@ -2,7 +2,7 @@ import logging
 from typing import Any, List, Optional, TypeVar
 
 import discord
-from sqlalchemy import Result, delete, insert, select
+from sqlalchemy import Result, delete, insert, select, update
 
 import mp2i.database.executor as database_executor
 from mp2i.database.exceptions import InsertException, ReturningElementException
@@ -40,6 +40,31 @@ class GuildWrapper(ObjectWrapper[discord.Guild]):
             select(GuildModel).where(GuildModel.guild_id == self._boxed.id)
         )
         return result.scalar_one_or_none() if result else None
+
+    def _update(self, **kwargs: Any) -> None:
+        """
+        Update GuildModel in database
+
+        Parameters
+        ----------
+        kwargs : Any
+            dictionnary with attributes to update, e.g. suggestions_message_id=None
+        """
+        result: Optional[Result[GuildModel]] = database_executor.execute(
+            update(GuildModel)
+            .where(
+                GuildModel.guild_id == self._boxed.id,
+            )
+            .values(**kwargs)
+            .returning(GuildModel)
+        )
+        if not result or not (guild_model := result.scalar_one_or_none()):
+            logger.fatal(
+                "Could not retrieve back MemberModel after updated from member: %d",
+                self._boxed.id,
+            )
+        else:
+            self.__model = guild_model
 
     def register(self) -> GuildModel:
         """
@@ -155,6 +180,57 @@ class GuildWrapper(ObjectWrapper[discord.Guild]):
     @property
     def get_max_promotions(self) -> int:
         return self._config.get("promotions", {}).get("max", 0)
+
+    @property
+    def suggestions_channel(self) -> Optional[discord.TextChannel]:
+        """
+        Get the suggestions channel
+
+        Parameters
+        ----------
+        Optional[discord.TextChannel]
+            The text channel can be None if not found
+        """
+        channel: Optional[discord.TextChannel] = self.get_any_channel(
+            self._config.get("suggestions", {}).get("channel", None),
+            discord.TextChannel,
+        )
+        if not channel:
+            logger.warning(
+                "Suggestions channel for guild %d has been misconfigured.",
+                self._boxed.id,
+            )
+        return channel
+
+    @property
+    async def suggestions_message(self) -> Optional[discord.Message]:
+        """
+        Get the main message for suggestions
+
+        Parameters
+        ----------
+        Optional[discord.Message]
+            The main message for suggestions can be None if not found
+        """
+        channel: Optional[discord.TextChannel] = self.suggestions_channel
+        if not channel or not self.__model or not self.__model.suggestion_message_id:
+            return None
+        return await channel.fetch_message(self.__model.suggestion_message_id)
+
+    @suggestions_message.setter
+    def suggestions_message(self, message: Optional[discord.Message]) -> None:
+        """
+        Change suggestions' main message id
+
+        Parameters
+        ----------
+        message : Optional[discord.Message]
+            The message, can be None to unset the value
+        """
+        if not self.__model:
+            return
+        self.__model.suggestion_message_id = message.id if message else None
+        self._update(suggestion_message_id=self.__model.suggestion_message_id)
 
     def __eq__(self, value: Any) -> bool:
         """

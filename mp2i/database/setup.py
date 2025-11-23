@@ -9,7 +9,9 @@ from .models import Base
 from .models.guild import GuildModel as GuildModel
 from .models.member import MemberModel as MemberModel
 from .models.promotion import PromotionModel as PromotionModel
+from .models.sanction import SanctionModel as SanctionModel
 from .models.school import SchoolModel as SchoolModel
+from .models.suggestion import SuggestionModel as SuggestionModel
 from .models.ticket import TicketModel as TicketModel
 from .models.user import UserModel as UserModel
 
