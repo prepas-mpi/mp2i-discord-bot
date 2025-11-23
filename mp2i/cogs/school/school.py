@@ -312,6 +312,7 @@ class School(GroupCog, name="school", description="Gestion des établissements")
 
         database_executor.execute(
             delete(SchoolModel).where(
+                SchoolModel.guild_id == interaction.guild.id,
                 SchoolModel.school_id == school.school_id,
             )
         )
@@ -514,9 +515,14 @@ class School(GroupCog, name="school", description="Gestion des établissements")
         message : discord.Message
             Message to perform an action on
         """
+        if not interaction.guild:
+            return
         await interaction.response.defer(ephemeral=True)
         result: Optional[Result[SchoolModel]] = database_executor.execute(
-            select(SchoolModel).where(SchoolModel.thread_id == message.channel.id)
+            select(SchoolModel).where(
+                SchoolModel.guild_id == interaction.guild.id,
+                SchoolModel.thread_id == message.channel.id,
+            )
         )
 
         if not result:

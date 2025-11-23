@@ -279,7 +279,8 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
         await message.clear_reactions()
 
         database_executor.execute(
-            update(SuggestionModel).values(
+            update(SuggestionModel)
+            .values(
                 suggestion_status=status,
                 staff_id=MemberWrapper(staff).member_id,
                 staff_description=reason,
@@ -363,7 +364,10 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
             SuggestionModel.guild_id == guild.id
         )
         if status:
-            statement = statement.where(SuggestionModel.suggestion_status == status)
+            statement = statement.where(
+                SuggestionModel.guild_id == interaction.guild.id,
+                SuggestionModel.suggestion_status == status,
+            )
 
         result: Optional[Result[SuggestionModel]] = database_executor.execute(statement)
 
@@ -440,7 +444,7 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
         suggestion_id : Optional[str]
             The suggestion's id to close can be None to use the current thread
         """
-        if not interaction.channel_id:
+        if not interaction.channel_id or not interaction.guild:
             return
         result: Optional[Result[SuggestionModel]] = None
         suggestion: Optional[SuggestionModel] = None
@@ -448,6 +452,7 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
             try:
                 result = database_executor.execute(
                     select(SuggestionModel).where(
+                        SuggestionModel.guild_id == interaction.guild.id,
                         SuggestionModel.suggestion_id == int(suggestion_id),
                         SuggestionModel.suggestion_status == SuggestionStatus.OPEN,
                     )

@@ -99,7 +99,9 @@ class SchoolCmdUtils(Cog):
             return
         await interaction.response.defer()
 
-        statement: Executable = select(SchoolModel).where(SchoolModel.referent)
+        statement: Executable = select(SchoolModel).where(
+            SchoolModel.guild_id == guild.id, SchoolModel.referent
+        )
         if type:
             statement = statement.where(SchoolModel.school_type == type)
 

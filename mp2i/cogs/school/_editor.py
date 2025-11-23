@@ -99,6 +99,8 @@ class SchoolNameModal(ui.Modal, title="Entrez un nouveau nom"):
         interaction : discord.Interaction
             The submit of the modal
         """
+        if not interaction.guild:
+            return
         result: Optional[Result[SchoolModel]] = database_executor.execute(
             select(SchoolModel).where(
                 SchoolModel.guild_id == self._school.guild_id,
@@ -119,6 +121,7 @@ class SchoolNameModal(ui.Modal, title="Entrez un nouveau nom"):
         database_executor.execute(
             update(SchoolModel)
             .where(
+                SchoolModel.guild_id == interaction.guild.id,
                 SchoolModel.school_id == self._school.school_id,
             )
             .values(school_name=self.name.value)
@@ -269,7 +272,7 @@ class SchoolReferentButton(ui.Button["SchoolSettings"]):
         interaction : discord.Interaction
             The button interaction
         """
-        if not self._view:
+        if not self._view or not interaction.guild:
             return
         if not self._school.referent:
             await interaction.response.send_message(
@@ -299,6 +302,7 @@ class SchoolReferentButton(ui.Button["SchoolSettings"]):
         database_executor.execute(
             update(SchoolModel)
             .where(
+                SchoolModel.guild_id == interaction.guild.id,
                 SchoolModel.school_id == self._school.school_id,
             )
             .values(referent_id=None)
@@ -351,7 +355,7 @@ class SchoolReferentSelector(ui.UserSelect["SchoolSettings"]):
         interaction : discord.Interaction
             The selection interaction
         """
-        if not self._view:
+        if not self._view or not interaction.guild:
             return
         member: discord.Member | discord.User = self.values[0]
         if member.bot:
@@ -394,6 +398,7 @@ class SchoolReferentSelector(ui.UserSelect["SchoolSettings"]):
         database_executor.execute(
             update(SchoolModel)
             .where(
+                SchoolModel.guild_id == interaction.guild.id,
                 SchoolModel.school_id == self._school.school_id,
             )
             .values(referent_id=member_wrapper.member_id)
