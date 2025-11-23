@@ -284,6 +284,10 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
                 staff_id=MemberWrapper(staff).member_id,
                 staff_description=reason,
             )
+            .where(
+                SuggestionModel.guild_id == guild.id,
+                SuggestionModel.suggestion_id == suggestion.suggestion_id,
+            )
         )
 
         await thread.edit(locked=True, archived=True)
