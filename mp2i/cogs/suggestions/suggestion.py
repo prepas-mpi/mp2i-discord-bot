@@ -307,11 +307,14 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
         List[Choice[str]]
             List of choices
         """
+        if not interaction.guild:
+            return []
         await interaction.response.defer()
 
         result: Optional[Result[SuggestionModel]] = database_executor.execute(
             select(SuggestionModel)
             .where(
+                SuggestionModel.guild_id == interaction.guild.id,
                 SuggestionModel.suggestion_title.istartswith(current),
                 SuggestionModel.suggestion_status == SuggestionStatus.OPEN,
             )

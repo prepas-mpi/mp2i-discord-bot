@@ -191,11 +191,16 @@ async def _autocomplete_schools_name(
     List[Choice[str]]
         List of choices
     """
+    if not interaction.guild:
+        return []
     await interaction.response.defer()
 
     result: Optional[Result[SchoolModel]] = database_executor.execute(
         select(SchoolModel)
-        .where(SchoolModel.school_name.istartswith(current))
+        .where(
+            SchoolModel.guild_id == interaction.guild.id,
+            SchoolModel.school_name.istartswith(current),
+        )
         .order_by(SchoolModel.school_name)
         .limit(20)
     )
