@@ -308,7 +308,7 @@ class ProfileEditorAddPromotion(ui.Button["ProfileEditorView"]):
                 ui.TextDisplay(f"{school.school_name} ({school.school_type.value})"),
                 accessory=ProfileEditorAddSchool(self._view, self._member, school),
             )
-            for school in map(lambda row: row.tuple()[0], result.all())
+            for school in result.scalars()
         ]
 
         await ComponentsPaginator(
