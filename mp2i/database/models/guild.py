@@ -23,9 +23,20 @@ class GuildModel(Base):
         ),
     )
 
+    roles_message_id: Mapped[Optional[int]] = mapped_column(
+        BigInteger(),
+        nullable=True,
+        default=None,
+        info=dict(
+            label="Roles Message ID",
+            hint="Unique roles message ID of the guild.",
+        ),
+    )
+
     suggestion_message_id: Mapped[Optional[int]] = mapped_column(
         BigInteger(),
         nullable=True,
+        default=None,
         info=dict(
             label="Suggestion Message ID",
             hint="Unique suggestion message ID of the guild.",

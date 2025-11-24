@@ -1,0 +1,1 @@
+Nous avons pu établir une correspondance entre votre mail et une académie. Nous venons d'envoyer un mail à l'adresse fournie contenant un code de vérification à {nb} chiffres. Vous avez {time} pour nous le renvoyer dans ce salon.

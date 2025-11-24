@@ -3,9 +3,61 @@
 
         [guilds.server_id.roles.Administrateur]
         id = role_id
+        # selectable=false # default case
 
         [guilds.server_id.roles."Modérateur"]
         id = role_id
+        emoji_id=emoji_id
+
+        [guilds.server_id.roles."Référent CPGE"]
+        id=role_id
+        selectable=false
+        emoji_id=emoji_id
+
+        [guilds.server_id.roles."Référent École"]
+        id=role_id
+        selectable=false
+        emoji_id=emoji_id
+
+        [guilds.server_id.roles.MPI]
+        id=role_id
+        selectable=true
+        emoji_id=emoji_id
+
+        [guilds.server_id.roles.MP2I]
+        id=role_id
+        selectable=true
+        emoji_id=emoji_id
+
+        [guilds.server_id.roles.Prof]
+        id=role_id
+        selectable=true
+        emoji_id=emoji_id
+
+        [guilds.server_id.roles."Intégré"]
+        id=role_id
+        selectable=true
+        emoji_id=emoji_id
+
+        [guilds.server_id.roles."Diplômé"]
+        id=role_id
+        selectable=true
+        emoji_id=emoji_id
+
+        [guilds.server_id.roles."Infiltré"]
+        id=role_id
+        selectable=true
+        emoji_id=emoji_id
+
+        [guilds.server_id.roles."Lycéen"]
+        id=role_id
+        selectable=true
+        emoji_id=emoji_id
+
+        [guilds.server_id.roles."Ex MPI"]
+        id=role_id
+        selectable=true
+        emoji_id=emoji_id
 
         [guilds.server_id.logs]
         channel = channel_id

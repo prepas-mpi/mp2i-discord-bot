@@ -232,6 +232,59 @@ class GuildWrapper(ObjectWrapper[discord.Guild]):
         self.__model.suggestion_message_id = message.id if message else None
         self._update(suggestion_message_id=self.__model.suggestion_message_id)
 
+    @property
+    def roles_message_id(self) -> Optional[int]:
+        """
+        Get the id of the message observed for roles
+
+        Parameters
+        ----------
+        Optional[int]
+            The id of the message observed for roles can be None if not set
+        """
+        if not self.__model:
+            return -1
+        return self.__model.roles_message_id
+
+    @roles_message_id.setter
+    def roles_message_id(self, id: Optional[int]) -> None:
+        """
+        Change id of the message observed for roles
+
+        Parameters
+        ----------
+        message : Optional[int]
+            The id of the message, can be None to unset the value
+        """
+        if not self.__model:
+            return
+        self.__model.roles_message_id = id
+        self._update(roles_message_id=self.__model.roles_message_id)
+
+    @property
+    def selectionnable_roles(self) -> dict[str, tuple[discord.Role, int]]:
+        result: dict[str, tuple[discord.Role, int]] = {}
+        for role_name in self._config.get("roles", []):
+            if (
+                not self._config.get("roles", {})
+                .get(role_name, {})
+                .get("selectable", False)
+            ):
+                continue
+            role_id: int = (
+                self._config.get("roles", {}).get(role_name, {}).get("id", None)
+            )
+            if not role_id:
+                continue
+            role: Optional[discord.Role] = self._boxed.get_role(role_id)
+            if not role:
+                continue
+            result[role_name] = (
+                role,
+                self._config.get("roles", {}).get(role_name, {}).get("emoji_id", 0),
+            )
+        return result
+
     def __eq__(self, value: Any) -> bool:
         """
         Check if an object is equal to the GuildWrapper

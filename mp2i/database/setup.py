@@ -6,6 +6,7 @@ from . import engine
 from .models import Base
 
 # Import so that models are registered in Base's metadata
+from .models.academy import AcademyModel as AcademyModel
 from .models.guild import GuildModel as GuildModel
 from .models.member import MemberModel as MemberModel
 from .models.promotion import PromotionModel as PromotionModel
