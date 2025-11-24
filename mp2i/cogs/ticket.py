@@ -69,7 +69,7 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
             return
 
         guild: GuildWrapper = GuildWrapper(interaction.guild, fetch=False)
-        channel: Optional[discord.TextChannel] = guild.get_ticket_channel
+        channel: Optional[discord.TextChannel] = guild.ticket_channel
         if not channel:
             await interaction.response.send_message(
                 "Le canal de tickets n'a pas été configuré correctement.",
@@ -147,7 +147,7 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
             return
 
         guild: GuildWrapper = GuildWrapper(interaction.guild, fetch=False)
-        channel: Optional[discord.TextChannel] = guild.get_ticket_channel
+        channel: Optional[discord.TextChannel] = guild.ticket_channel
         if not channel:
             await interaction.edit_original_response(
                 content="Le canal de tickets n'a pas été configuré correctement."
@@ -292,7 +292,7 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
         member_wrapper: MemberWrapper = MemberWrapper(interaction.user)
         if (
             len(list(filter(lambda t: not t.closed, member_wrapper.tickets)))
-            >= guild.get_max_ticket
+            >= guild.max_ticket
         ):
             logger.warning(
                 "User %d tried to open more tickets than the guild %d limit",

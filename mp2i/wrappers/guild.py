@@ -137,7 +137,7 @@ class GuildWrapper(ObjectWrapper[discord.Guild]):
         return channel
 
     @property
-    def get_log_channel(self) -> Optional[discord.TextChannel]:
+    def log_channel(self) -> Optional[discord.TextChannel]:
         channel: Optional[discord.TextChannel] = self.get_any_channel(
             self._config.get("logs", {}).get("channel", None), discord.TextChannel
         )
@@ -148,11 +148,11 @@ class GuildWrapper(ObjectWrapper[discord.Guild]):
         return channel
 
     @property
-    def get_blacklisted_log_channels(self) -> List[int]:
+    def blacklisted_log_channels(self) -> List[int]:
         return self._config.get("logs", {}).get("blacklist", [])
 
     @property
-    def get_sanctions_channel(self) -> Optional[discord.TextChannel]:
+    def sanctions_channel(self) -> Optional[discord.TextChannel]:
         channel: Optional[discord.TextChannel] = self.get_any_channel(
             self._config.get("sanctions", {}).get("channel", None), discord.TextChannel
         )
@@ -163,7 +163,7 @@ class GuildWrapper(ObjectWrapper[discord.Guild]):
         return channel
 
     @property
-    def get_ticket_channel(self) -> Optional[discord.TextChannel]:
+    def ticket_channel(self) -> Optional[discord.TextChannel]:
         channel: Optional[discord.TextChannel] = self.get_any_channel(
             self._config.get("tickets", {}).get("channel", None), discord.TextChannel
         )
@@ -174,11 +174,11 @@ class GuildWrapper(ObjectWrapper[discord.Guild]):
         return channel
 
     @property
-    def get_max_ticket(self) -> int:
+    def max_ticket(self) -> int:
         return self._config.get("tickets", {}).get("max", 0)
 
     @property
-    def get_max_promotions(self) -> int:
+    def max_promotions(self) -> int:
         return self._config.get("promotions", {}).get("max", 0)
 
     @property

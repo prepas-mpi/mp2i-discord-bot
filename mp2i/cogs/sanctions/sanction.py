@@ -218,7 +218,7 @@ class Sanction(GroupCog, name="sanction", description="Gestion des sanctions"):
         if not interaction.guild:
             return
         guild: GuildWrapper = GuildWrapper(interaction.guild, fetch=False)
-        sanction_channel: Optional[discord.TextChannel] = guild.get_sanctions_channel
+        sanction_channel: Optional[discord.TextChannel] = guild.sanctions_channel
         if not sanction_channel:
             await interaction.response.send_message(
                 "Aucun salon de journal de sanctions n'a été trouvé.", ephemeral=True

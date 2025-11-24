@@ -82,7 +82,7 @@ class SanctionEditorModal(ui.Modal):
             except discord.Forbidden:
                 dm_sent = False
         guild: GuildWrapper = GuildWrapper(interaction.guild, fetch=False)
-        channel: Optional[discord.TextChannel] = guild.get_sanctions_channel
+        channel: Optional[discord.TextChannel] = guild.sanctions_channel
         if channel:
             await channel.send(
                 view=SanctionEdited(

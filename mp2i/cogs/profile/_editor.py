@@ -368,7 +368,7 @@ class ProfileEditorView(ui.LayoutView):
                 )
             )
 
-        if len(self._member.promotions) < self._guild.get_max_promotions:
+        if len(self._member.promotions) < self._guild.max_promotions:
             container.add_item(ui.ActionRow(ProfileEditorAddPromotion(self._member)))
 
         if self._member.profile_colour:

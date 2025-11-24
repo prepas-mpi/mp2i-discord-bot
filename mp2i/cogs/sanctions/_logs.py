@@ -27,9 +27,7 @@ async def log_sanction(
     duration: Optional[int] = None,
 ) -> None:
     guild_wrapper: GuildWrapper = GuildWrapper(guild, fetch=False)
-    sanction_channel: Optional[discord.TextChannel] = (
-        guild_wrapper.get_sanctions_channel
-    )
+    sanction_channel: Optional[discord.TextChannel] = guild_wrapper.sanctions_channel
     if not sanction_channel:
         logger.fatal(f"Can not find channel to log sanction for {victim.id}.")
         return

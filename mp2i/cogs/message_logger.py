@@ -35,9 +35,9 @@ class MessageLogger(Cog):
         assert bool(message.guild)
         guild: GuildWrapper = GuildWrapper(message.guild, fetch=False)
 
-        channel: Optional[discord.TextChannel] = guild.get_log_channel
+        channel: Optional[discord.TextChannel] = guild.log_channel
 
-        if not channel or message.channel.id in guild.get_blacklisted_log_channels:
+        if not channel or message.channel.id in guild.blacklisted_log_channels:
             return
 
         parts: List[ui.TextDisplay] = list(

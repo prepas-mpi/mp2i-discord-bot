@@ -99,9 +99,9 @@ async def add_member_to_school(
     if not interaction.guild:
         return
     guild: GuildWrapper = GuildWrapper(interaction.guild, fetch=False)
-    if len(member.promotions) >= guild.get_max_promotions:
+    if len(member.promotions) >= guild.max_promotions:
         await interaction.edit_original_response(
-            content=f"Pas plus de {guild.get_max_promotions} promotions."
+            content=f"Pas plus de {guild.max_promotions} promotions."
         )
         return
 
