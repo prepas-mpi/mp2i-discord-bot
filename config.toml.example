@@ -79,3 +79,8 @@
         [guilds.server_id.promotions]
         # number of school that a user can joined at most
         max = max_promotions
+
+        [guilds.server_id.pins]
+        emoji=emoji
+        minimum = min_emojis
+        channel = channel_id

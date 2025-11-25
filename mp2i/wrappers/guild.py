@@ -1,4 +1,5 @@
 import logging
+import sys
 from typing import Any, List, Optional, TypeVar
 
 import discord
@@ -284,6 +285,35 @@ class GuildWrapper(ObjectWrapper[discord.Guild]):
                 self._config.get("roles", {}).get(role_name, {}).get("emoji_id", 0),
             )
         return result
+
+    @property
+    def pin_emoji(self) -> Optional[str]:
+        return self._config.get("pins", {}).get("emoji", None)
+
+    @property
+    def pin_min_emoji(self) -> int:
+        return self._config.get("pins", {}).get("minimum", sys.maxsize)
+
+    @property
+    def pin_channel(self) -> Optional[discord.TextChannel]:
+        """
+        Get the pin channel
+
+        Parameters
+        ----------
+        Optional[discord.TextChannel]
+            The text channel can be None if not found
+        """
+        channel: Optional[discord.TextChannel] = self.get_any_channel(
+            self._config.get("pins", {}).get("channel", None),
+            discord.TextChannel,
+        )
+        if not channel:
+            logger.warning(
+                "Pins channel for guild %d has been misconfigured.",
+                self._boxed.id,
+            )
+        return channel
 
     def __eq__(self, value: Any) -> bool:
         """

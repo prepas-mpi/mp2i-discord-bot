@@ -9,6 +9,7 @@ from .models import Base
 from .models.academy import AcademyModel as AcademyModel
 from .models.guild import GuildModel as GuildModel
 from .models.member import MemberModel as MemberModel
+from .models.pin import PinModel as PinModel
 from .models.promotion import PromotionModel as PromotionModel
 from .models.sanction import SanctionModel as SanctionModel
 from .models.school import SchoolModel as SchoolModel
