@@ -243,7 +243,7 @@ class Pin(GroupCog, name="pins", description="Gestion des messages épinglés à
             )
 
         await ComponentsPaginator(
-            author=interaction.user.id, title="Pin à faire", entries=entries
+            author=interaction.user.id, title="## Pins à faire", entries=entries
         ).send(interaction)
 
     @command(name="done", description="Termine un pin")
