@@ -1,3 +1,6 @@
+[system.startup]
+    registering_guilds=true
+
 [guilds]
     [guilds.server_id]
 

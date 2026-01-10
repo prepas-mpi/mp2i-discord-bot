@@ -2,6 +2,7 @@ import logging
 
 from discord.ext.commands import Bot, Cog
 
+from mp2i.utils.config import get_config_deep
 from mp2i.wrappers.guild import GuildWrapper
 from mp2i.wrappers.member import MemberWrapper
 
@@ -29,18 +30,20 @@ class Ready(Cog):
         """
         Registering guilds and members in database
         """
-        logger.info("Registering members")
-        for guild_wrapper in map(GuildWrapper, self._bot.guilds):
-            guild_wrapper.register()
-            logger.debug("Chunking guild")
-            await guild_wrapper.chunk()
-            logger.debug("Begin registering members")
-            for member in guild_wrapper.members:
-                if not member.bot:
-                    MemberWrapper(member).register()
-
-        logger.info("Bot is ready and has register every member.")
-
+        if get_config_deep("system.startup.registering_guilds"):
+            logger.info("Registering members")
+            for guild_wrapper in map(GuildWrapper, self._bot.guilds):
+                guild_wrapper.register()
+                logger.debug("Chunking guild")
+                await guild_wrapper.chunk()
+                logger.debug("Begin registering members")
+                for member in guild_wrapper.members:
+                    if not member.bot:
+                        MemberWrapper(member).register()
+            logger.info("Bot is ready and has register every member.")
+        else:
+            logger.info("Skipping members registration.")
+            logger.info("Bot is ready.")
 
 async def setup(bot: Bot) -> None:
     """
