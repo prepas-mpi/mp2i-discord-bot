@@ -136,7 +136,7 @@ class Sanction(GroupCog, name="sanction", description="Gestion des sanctions"):
             )
         if type:
             statement = statement.where(SanctionModel.sanction_type == type)
-        result: Optional[Result[SanctionModel]] = database_executor.execute(statement)
+        result: Optional[Result[SanctionModel]] = database_executor.execute(statement.order_by(SanctionModel.sanction_id.desc()))
         if not result:
             await interaction.edit_original_response(
                 content="Aucune réponse de la base de données."
