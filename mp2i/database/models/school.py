@@ -1,7 +1,15 @@
 from enum import Enum as PyEnum
 from typing import TYPE_CHECKING, Any, Optional
 
-from sqlalchemy import VARCHAR, BigInteger, Enum, ForeignKey, Index, Sequence
+from sqlalchemy import (
+    VARCHAR,
+    BigInteger,
+    Enum,
+    ForeignKey,
+    Index,
+    Sequence,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from . import Base
@@ -27,7 +35,10 @@ class SchoolModel(Base):
     """
 
     __tablename__ = "schools"
-    __tableargs__ = (Index("idx_school_name", "school_name"),)
+    __tableargs__ = (
+        UniqueConstraint("guild_id", "school_name"),
+        Index("idx_school_name", "school_name"),
+    )
 
     school_id: Mapped[int] = mapped_column(
         BigInteger(),
@@ -46,7 +57,6 @@ class SchoolModel(Base):
 
     school_name: Mapped[str] = mapped_column(
         VARCHAR(255),
-        unique=True,
         nullable=False,
         info=dict(label="School Name", hint="Name of the school"),
     )
