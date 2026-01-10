@@ -316,7 +316,7 @@ class ProfileEditorAddPromotion(ui.Button["ProfileEditorView"]):
             title="## Choisissez votre école",
             entries=entries,
             colour=0xFFA636,
-            entries_per_page=1,
+            entries_per_page=10,
         ).send(interaction)
 
 
