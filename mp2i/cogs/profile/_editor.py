@@ -293,7 +293,7 @@ class ProfileEditorAddPromotion(ui.Button["ProfileEditorView"]):
         )
         result: Optional[Result[SchoolModel]] = database_executor.execute(
             select(SchoolModel)
-            .where(~SchoolModel.school_id.in_(already_in_schools))
+            .where(~SchoolModel.school_id.in_(already_in_schools), SchoolModel.guild_id == interaction.guild_id)
             .order_by(SchoolModel.school_name)
         )
 
