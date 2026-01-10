@@ -1,4 +1,5 @@
 import datetime
+import humanize
 import logging
 from math import ceil
 from typing import List, Optional, Sequence
@@ -154,7 +155,7 @@ class Sanction(GroupCog, name="sanction", description="Gestion des sanctions"):
             )
             content += f"**Membre :** {victim.mention if victim else sanction.victim.user_id}\n"
             if sanction.sanction_duration:
-                content += f"**Temps :** {sanction.sanction_duration}\n"
+                content += f"**Temps :** {humanize.naturaldelta(sanction.sanction_duration)}\n"
 
             if sanction.staff:
                 staff: Optional[discord.Member] = interaction.guild.get_member(
