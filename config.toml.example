@@ -12,6 +12,10 @@
         id = role_id
         emoji_id=emoji_id
 
+        [guilds.server_id.roles."Gestion Association"]
+        id = role_id
+        emoji_id = emoji_id
+
         [guilds.server_id.roles."Référent CPGE"]
         id=role_id
         selectable=false
