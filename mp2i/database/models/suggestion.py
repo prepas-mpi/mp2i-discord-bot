@@ -119,3 +119,10 @@ class SuggestionModel(Base):
             hint="The the answer to the suggestion",
         ),
     )
+
+    suggestion_handled_date: Mapped[Optional[datetime.datetime]] = mapped_column(
+        DateTime(),
+        nullable=True,
+        default=None,
+        info=dict(label="Suggestion handle's date", hint="Date of the handle of the suggestion"),
+    )

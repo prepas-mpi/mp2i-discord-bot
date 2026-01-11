@@ -284,6 +284,7 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
                 suggestion_status=status,
                 staff_id=MemberWrapper(staff).member_id,
                 staff_description=reason,
+                suggestion_handled_date=datetime.datetime.now(),
             )
             .where(
                 SuggestionModel.guild_id == guild.id,
