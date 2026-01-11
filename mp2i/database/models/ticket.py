@@ -10,6 +10,15 @@ from . import Base
 class TicketLevel(PyEnum):
     ADMINISTRATOR = 0
     MODERATOR = 1
+    ASSOCIATION = 2
+
+    def __str__(self) -> str:
+        if self == TicketLevel.MODERATOR:
+            return "Modération"
+        elif self == TicketLevel.ASSOCIATION:
+            return "Association"
+        else:
+            return "Administration"
 
 
 class TicketModel(Base):

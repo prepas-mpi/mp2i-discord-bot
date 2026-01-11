@@ -84,7 +84,7 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
         container.add_item(
             ui.TextDisplay(
                 (self._open_staff if request else self._open_other).format(
-                    mention=target.mention
+                    mention=target.mention, level=level
                 )
             )
         )
@@ -109,6 +109,8 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
         role_to_mention: List[discord.Role] = guild.mapping_roles(
             ["Administrateur", "Modérateur"]
             if level == TicketLevel.MODERATOR
+            else ["Administrateur", "Gestion Association"]
+            if level == TicketLevel.ASSOCIATION
             else ["Administrateur"]
         )
 
@@ -185,7 +187,7 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
         member="Membre concerné par le ticket", level="Niveau d'incidence du ticket"
     )
     @rename(member="membre", level="niveau")
-    @has_any_role("Administrateur", "Modérateur")
+    @has_any_role("Administrateur", "Modérateur", "Gestion Association")
     async def open_ticket(
         self,
         interaction: discord.Interaction,
@@ -260,6 +262,10 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
                         ),
                         discord.SelectOption(
                             label="Modération", value=str(TicketLevel.MODERATOR.value)
+                        ),
+                        discord.SelectOption(
+                            label="Association",
+                            value=str(TicketLevel.ASSOCIATION.value),
                         ),
                     ],
                 )
@@ -340,14 +346,6 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
             return
         thread: discord.Thread = interaction.channel
 
-        try:
-            await has_any_roles_predicate(interaction, "Administrateur", "Modérateur")
-        except MissingAnyRole:
-            await interaction.response.send_message(
-                "Vous ne pouvez pas clôturer vous-même le ticket.", ephemeral=True
-            )
-            return
-
         result: Optional[Result[TicketModel]] = database_executor.execute(
             select(TicketModel).where(TicketModel.thread_id == thread.id).limit(1)
         )
@@ -366,6 +364,24 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
                 "Le ticket n'a pas été trouvée dans la base de données."
             )
             return
+
+        try:
+            if ticket.level == TicketLevel.MODERATOR:
+                await has_any_roles_predicate(
+                    interaction, "Administrateur", "Modérateur"
+                )
+            elif ticket.level == TicketLevel.ASSOCIATION:
+                await has_any_roles_predicate(
+                    interaction, "Administrateur", "Gestion Association"
+                )
+            else:
+                await has_any_roles_predicate(interaction, "Administrateur")
+        except MissingAnyRole:
+            await interaction.response.send_message(
+                "Vous ne pouvez pas clôturer vous-même le ticket.", ephemeral=True
+            )
+            return
+
         if ticket.closed:
             await interaction.response.send_message("Ce ticket a déjà été fermé.")
             return
