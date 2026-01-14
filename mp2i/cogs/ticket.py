@@ -5,6 +5,7 @@ import discord
 import discord.ui as ui
 from discord.app_commands import MissingAnyRole, command, describe, guild_only, rename
 from discord.ext.commands import Bot, Cog, GroupCog
+from discord.types.threads import ThreadArchiveDuration
 from sqlalchemy import Result, insert, select, update
 
 import mp2i.database.executor as database_executor
@@ -78,7 +79,9 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
             return
 
         thread: discord.Thread = await channel.create_thread(
-            name=f"[Ouvert] Ticket de {target.name}", invitable=False
+            name=f"[Ouvert] Ticket de {target.name}",
+            invitable=False,
+            auto_archive_duration=10080,
         )
         container: ui.Container = ui.Container()
         container.add_item(
