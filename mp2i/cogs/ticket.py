@@ -5,7 +5,6 @@ import discord
 import discord.ui as ui
 from discord.app_commands import MissingAnyRole, command, describe, guild_only, rename
 from discord.ext.commands import Bot, Cog, GroupCog
-from discord.types.threads import ThreadArchiveDuration
 from sqlalchemy import Result, insert, select, update
 
 import mp2i.database.executor as database_executor
