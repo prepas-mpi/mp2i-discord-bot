@@ -35,6 +35,7 @@ class SchoolCmdUtils(Cog):
         Optional[discord.Emoji]
             the emoji if exists
         """
+        # found emojis by name of the member's status
         return discord.utils.get(member.guild.emojis, name=member.status.name)
 
     @command(name="members", description="Affiche la liste des membres d'une école")
@@ -62,6 +63,7 @@ class SchoolCmdUtils(Cog):
         if not (school := await _find_school(interaction, name)):
             return
 
+        # find members and their promotion's year of the school
         result: Optional[Result[MemberModel]] = database_executor.execute(
             select(MemberModel)
             .add_columns(PromotionModel.promotion_year)
@@ -75,6 +77,7 @@ class SchoolCmdUtils(Cog):
             )
             return
 
+        # map membermodel to guild's member
         members: List[Tuple[MemberModel, Optional[Member], int]] = list(
             map(
                 lambda model: (model[0], guild.get_member(model[0].user_id), model[1]),
@@ -82,19 +85,23 @@ class SchoolCmdUtils(Cog):
             )
         )
         title: str = "## Membres de l'établissement " + school.school_name
+        # retrieve referent while looping of all members
         referent: Optional[str] = None
         entries: List[ui.Item[Any]] = []
         for model, member, year in members:
             if not member:
                 continue
             text: str = f" `{member.name}`・{member.mention}・{year}"
+            # looking at referent
             if model.member_id == school.referent_id:
                 referent = text + f" {self._get_emoji_by_status(member)}"
                 continue
             entries.append(ui.TextDisplay(text))
+
         title += f"\n**Nombre d'étudiants** {len(entries) + (1 if referent else 0)}"
         if referent:
             title += f"\n**Référent** {referent}"
+
         await ComponentsPaginator(
             author=interaction.user.id,
             title=title,
@@ -137,6 +144,7 @@ class SchoolCmdUtils(Cog):
             )
             return
 
+        # get discord's member from school's referent id
         schools: List[Tuple[SchoolModel, Optional[discord.Member]]] = list(
             map(
                 lambda school: (school, guild.get_member(school.referent.user_id)),

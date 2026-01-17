@@ -105,6 +105,8 @@ async def add_member_to_school(
         )
         return
 
+    # create a new promotion, if already exists, override promotion's yead
+    # returning promotion model
     result: Optional[Result[PromotionModel]] = database_executor.execute(
         insert_psql(PromotionModel)
         .values(
@@ -119,6 +121,7 @@ async def add_member_to_school(
     )
     if not result:
         return None
+    # add member to school's thread
     if school.thread_id:
         channel: Optional[discord.Thread] = guild.get_any_channel(
             school.thread_id, discord.Thread
@@ -147,6 +150,7 @@ async def remove_member_from_school(
     """
     if not interaction.guild:
         return
+    # check if school's referent is the leaving member
     if (
         promotion.school.referent
         and promotion.school.referent.member_id == member.member_id
@@ -156,15 +160,18 @@ async def remove_member_from_school(
             member.id,
             promotion.school_id,
         )
+        # remove referent
         if await _remove_old_referent(
             interaction, GuildWrapper(interaction.guild, fetch=False), promotion.school
         ):
+            # update database for referent
             database_executor.execute(
                 update(SchoolModel)
                 .values(referent_id=None)
                 .where(SchoolModel.school_id == promotion.school_id)
             )
 
+    # remove promotion
     database_executor.execute(
         delete(PromotionModel).where(
             PromotionModel.promotion_id == promotion.promotion_id
@@ -195,6 +202,7 @@ async def _autocomplete_schools_name(
         return []
     await interaction.response.defer()
 
+    # get school's name. limit to 20 due to discord
     result: Optional[Result[SchoolModel]] = database_executor.execute(
         select(SchoolModel)
         .where(
@@ -274,6 +282,7 @@ class School(GroupCog, name="school", description="Gestion des établissements")
         if await _find_school(interaction, name, True):
             return
 
+        # update database
         database_executor.execute(
             insert(SchoolModel).values(
                 guild_id=interaction.guild.id,
@@ -310,6 +319,7 @@ class School(GroupCog, name="school", description="Gestion des établissements")
         if not (school := await _find_school(interaction, name)):
             return
 
+        # update database
         database_executor.execute(
             delete(SchoolModel).where(
                 SchoolModel.guild_id == interaction.guild.id,
@@ -347,6 +357,7 @@ class School(GroupCog, name="school", description="Gestion des établissements")
 
         if not (school := await _find_school(interaction, name)):
             return
+        # open editing view
         await interaction.edit_original_response(
             view=SchoolSettings(guild, school),
             allowed_mentions=discord.AllowedMentions.none(),
@@ -532,6 +543,7 @@ class School(GroupCog, name="school", description="Gestion des établissements")
             )
             return
 
+        # get schools for which the member is referent
         matching_school: List[SchoolModel] = list(
             filter(
                 lambda school: school.referent
@@ -539,6 +551,7 @@ class School(GroupCog, name="school", description="Gestion des établissements")
                 map(lambda row: row.tuple()[0], result.all()),
             )
         )
+        # member is referent for a school that its thread is where interaction takes place
         if len(matching_school) == 0:
             await interaction.edit_original_response(
                 content="Vous ne pouvez pas (dés)épingler un message dans ce salon"

@@ -77,6 +77,7 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
             )
             return
 
+        # create thread not invitable with auto archive of one week
         thread: discord.Thread = await channel.create_thread(
             name=f"[Ouvert] Ticket de {target.name}",
             invitable=False,
@@ -99,15 +100,18 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
         view: ui.LayoutView = ui.LayoutView()
         view.add_item(container)
 
+        # send first message in the new thread
         message: discord.Message = await thread.send(view=view)
         await message.pin()
 
+        # update database
         database_executor.execute(
             insert(TicketModel).values(
                 member_id=target.member_id, thread_id=thread.id, level=level
             )
         )
 
+        # get roles from level of the thread
         role_to_mention: List[discord.Role] = guild.mapping_roles(
             ["Administrateur", "Modérateur"]
             if level == TicketLevel.MODERATOR
@@ -116,12 +120,15 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
             else ["Administrateur"]
         )
 
+        # send a temporary message then edit it with roles mentions to add all concerned members
         mention_message: discord.Message = await thread.send("(╯°□°)╯︵ ┻━┻")
         await mention_message.edit(
             content=" ".join(map(lambda role: role.mention, role_to_mention))
         )
+        # delete the message
         await mention_message.delete()
 
+        # response to slash command
         if request:
             await interaction.response.send_message(
                 f"Un ticket a été ouvert pour {target.mention} dans le fil {thread.jump_url}."
@@ -158,6 +165,7 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
             )
             return
 
+        # create container view for ticket creation
         container: ui.Container = ui.Container()
         container.add_item(
             ui.TextDisplay(self._global_message),
@@ -273,6 +281,7 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
                 )
             )
         )
+        # send view to let member select the level of their future ticket
         await interaction.response.send_message(view=view, ephemeral=True)
 
     @Cog.listener("on_interaction")
@@ -298,6 +307,7 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
             return
         guild: GuildWrapper = GuildWrapper(interaction.guild, fetch=False)
         member_wrapper: MemberWrapper = MemberWrapper(interaction.user)
+        # check if the number of member's opened tickets is less than the maximum for the guild
         if (
             len(list(filter(lambda t: not t.closed, member_wrapper.tickets)))
             >= guild.max_ticket
@@ -311,6 +321,7 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
                 "Vous avez trop de tickets en activité.", ephemeral=True
             )
             return
+        # get value of the ticket's level
         values: Optional[List[str]] = interaction.data.get("values")
         if not values:
             await interaction.response.send_message(
@@ -348,6 +359,7 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
             return
         thread: discord.Thread = interaction.channel
 
+        # get ticket
         result: Optional[Result[TicketModel]] = database_executor.execute(
             select(TicketModel).where(TicketModel.thread_id == thread.id).limit(1)
         )
@@ -367,6 +379,7 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
             )
             return
 
+        # check if member has the required roles
         try:
             if ticket.level == TicketLevel.MODERATOR:
                 await has_any_roles_predicate(
@@ -389,10 +402,12 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
             return
 
         await interaction.response.send_message("Fermeture du ticket en cours...")
+        # update thread
         await thread.edit(
             archived=True, locked=True, name=thread.name.replace("Ouvert", "Fermé")
         )
 
+        # update database
         database_executor.execute(
             update(TicketModel)
             .values(closed=True)

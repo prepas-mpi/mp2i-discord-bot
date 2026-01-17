@@ -40,12 +40,14 @@ class MessageLogger(Cog):
         if not channel or message.channel.id in guild.blacklisted_log_channels:
             return
 
+        # cut message in several parts
         parts: List[ui.TextDisplay] = list(
             map(
                 lambda text: ui.TextDisplay(f"```yml\n{text}```"),
                 message.content.split(f"(?<=\\G.{self.__MAX_MESSAGE_LENGTH})"),
             )
         )
+        # send message for each parts of the message
         for i in range(len(parts)):
             part_number: str = f"({i}/{len(parts)})"
             container: ui.Container = ui.Container()

@@ -51,6 +51,7 @@ class Academies(GroupCog, name="academies", description="Gestion des academies")
             return []
         await interaction.response.defer()
 
+        # get academies. limit to 20 due to discord
         result: Optional[Result[AcademyModel]] = database_executor.execute(
             select(AcademyModel)
             .where(
@@ -100,6 +101,7 @@ class Academies(GroupCog, name="academies", description="Gestion des academies")
             return
 
         try:
+            # add academy to database
             database_executor.execute(
                 insert(AcademyModel).values(
                     guild_id=interaction.guild.id, academy_name=name, domain_name=domain
@@ -136,6 +138,7 @@ class Academies(GroupCog, name="academies", description="Gestion des academies")
             return
 
         try:
+            # remove academy from database
             database_executor.execute(
                 delete(AcademyModel).where(
                     AcademyModel.guild_id == interaction.guild.id,
@@ -165,6 +168,7 @@ class Academies(GroupCog, name="academies", description="Gestion des academies")
             return
 
         await interaction.response.defer()
+        # get all academies
         result: Optional[Result[AcademyModel]] = database_executor.execute(
             select(AcademyModel).where(AcademyModel.guild_id == interaction.guild.id)
         )

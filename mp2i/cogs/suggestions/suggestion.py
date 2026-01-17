@@ -59,6 +59,7 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
         channel: Optional[discord.TextChannel] = guild_wrapper.suggestions_channel
         if not channel:
             return
+        # get previous suggestions instruction and delete it if exists
         past_message: Optional[
             discord.Message
         ] = await guild_wrapper.suggestions_message
@@ -69,6 +70,7 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
         filename = self._image.name
         section = ui.Section(
             ui.TextDisplay(self._process),
+            # `attachment://` is required
             accessory=ui.Thumbnail(media=f"attachment://{filename}"),
         )
         container.add_item(section)
@@ -85,6 +87,7 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
         view: ui.LayoutView = ui.LayoutView()
         view.add_item(container)
 
+        # add file (previous Thumbnail) in attachment to message
         file = discord.File(self._image, filename=filename)
         new_message: discord.Message = await channel.send(view=view, files=[file])
         guild_wrapper.suggestions_message = new_message
@@ -120,6 +123,8 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
         """
         if not author and not guild:
             return []
+        # return basic components used in the creation of the suggestion message
+        # used to recreate a suggestion message when its updated by staff
         return [
             ui.Section(
                 ui.TextDisplay(
@@ -158,11 +163,13 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
         if not (channel := guild.suggestions_channel):
             return
         container: ui.Container = ui.Container()
+        # get common components
         for item in self._get_components_for_default_container(
             author, title, description
         ):
             container.add_item(item)
         now: datetime.datetime = datetime.datetime.now()
+        # suggestion currently not handled
         container.add_item(
             ui.TextDisplay(
                 f"-# {SuggestionStatus.OPEN.emote} Suggestion non-traitée • <t:{round(now.timestamp())}:F>"
@@ -171,17 +178,21 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
         container.accent_colour = SuggestionStatus.OPEN.colour
         view: ui.LayoutView = ui.LayoutView()
         view.add_item(container)
+        # send message
         message: discord.Message = await channel.send(view=view)
         try:
+            # add emojis to the message
             await message.add_reaction("✅")
             await message.add_reaction("❌")
         except discord.errors.NotFound:
             pass
+        # create thread from the message
         thread: discord.Thread = await channel.create_thread(
             name=title, message=message, auto_archive_duration=10080
         )
         await thread.add_user(author)
         author_wrapper: MemberWrapper = MemberWrapper(author)
+        # update database
         database_executor.execute(
             insert(SuggestionModel).values(
                 guild_id=guild.id,
@@ -220,12 +231,15 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
             The reason of the closing, can be None
         """
         guild: GuildWrapper = GuildWrapper(staff.guild, fetch=False)
+        # get suggestion thread
         thread: Optional[discord.Thread] = guild.get_any_channel(
             suggestion.suggestion_message, discord.Thread
         )
         if not thread or not isinstance(thread.parent, discord.TextChannel):
             return
+        # get message
         message: discord.Message = await thread.parent.fetch_message(thread.id)
+        # get member that create the suggestion may not be present anymore
         author_res: Optional[Result[MemberModel]] = database_executor.execute(
             select(MemberModel).where(MemberModel.member_id == suggestion.author_id)
         )
@@ -237,6 +251,7 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
                 f"<reason>{'[^<]*' if not reason else '|'}</reason>", "", answer
             )
 
+            # inform suggestion's author that suggestion is closed
             await thread.send(
                 answer.format(
                     author=f"<@{author.user_id}>",
@@ -244,15 +259,18 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
                     message=message.jump_url,
                 )
             )
+        # count number of pros
         accept: int = getattr(
             discord.utils.get(message.reactions, emoji="✅"), "count", 0
         )
+        # count number of cons
         decline: int = getattr(
             discord.utils.get(message.reactions, emoji="❌"), "count", 0
         )
 
         now: datetime.datetime = datetime.datetime.now()
 
+        # create a new suggestion message with staff result
         container: ui.Container = ui.Container()
         for item in self._get_components_for_default_container(
             author_member,
@@ -275,9 +293,12 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
         container.accent_colour = status.colour
         view: ui.LayoutView = ui.LayoutView()
         view.add_item(container)
+        # edit suggestion message with the new container
         await message.edit(view=view)
+        # remove reactions
         await message.clear_reactions()
 
+        # update database
         database_executor.execute(
             update(SuggestionModel)
             .values(
@@ -292,6 +313,7 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
             )
         )
 
+        # lock and archive suggestion thread
         await thread.edit(locked=True, archived=True)
 
     async def _autocomplete_suggestions_titles(
@@ -317,6 +339,7 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
             return []
         await interaction.response.defer()
 
+        # get open suggestions. limit to 20 due to discord
         result: Optional[Result[SuggestionModel]] = database_executor.execute(
             select(SuggestionModel)
             .where(
@@ -364,6 +387,7 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
         statement: Executable = select(SuggestionModel).where(
             SuggestionModel.guild_id == guild.id
         )
+        # if there is a desired status, add condition to the sql request
         if status:
             statement = statement.where(
                 SuggestionModel.suggestion_status == status,
@@ -390,6 +414,7 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
                 entries.append(
                     ui.Section(
                         title,
+                        # button to jump to the suggestion
                         accessory=ui.Button(
                             style=discord.ButtonStyle.link,
                             label="Voir",
@@ -448,6 +473,7 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
             return
         result: Optional[Result[SuggestionModel]] = None
         suggestion: Optional[SuggestionModel] = None
+        # close suggestion by id
         if suggestion_id:
             try:
                 result = database_executor.execute(
@@ -466,6 +492,7 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
                     return
             except Exception:
                 pass
+        # close suggestion with current thread's id
         if not result:
             result = database_executor.execute(
                 select(SuggestionModel).where(
@@ -482,6 +509,7 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
                     "Aucune réponse de la base de données."
                 )
                 return
+        # neither id nor thread lead to a valid suggestion
         if not suggestion:
             await interaction.response.send_message("Aucune suggestion trouvée.")
             return

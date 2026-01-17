@@ -50,6 +50,7 @@ class Roles(GroupCog, name="roles", description="Gestion des roles"):
             lambda interaction: has_any_roles_predicate(interaction, "Administrateur")
         )
         bot.tree.add_command(ctx_menu)
+        # caching roles
         self._roles: dict[int, dict[str, tuple[discord.Role, int]]] = {}
 
     async def _prof_verification(
@@ -68,12 +69,14 @@ class Roles(GroupCog, name="roles", description="Gestion des roles"):
         """
         await member.send(self._dm_message)
         try:
+            # wait message from professor with email
             message: discord.Message = await self._bot.wait_for(
                 "message",
                 check=lambda message: message.channel == member.dm_channel,
                 timeout=self._timeout,
             )
             received_message: str = message.content.strip()
+            # check if the domain is known
             result: Optional[Result[AcademyModel]] = database_executor.execute(
                 select(AcademyModel).where(
                     AcademyModel.guild_id == member.guild.id,
@@ -91,6 +94,7 @@ class Roles(GroupCog, name="roles", description="Gestion des roles"):
                 )
                 return
 
+            # generate verification code and send it to the professor by mail
             verification_code: str = verification_code_generator(self._hardness)
 
             if not send_email(
@@ -103,22 +107,26 @@ class Roles(GroupCog, name="roles", description="Gestion des roles"):
                 )
                 return
 
+            # send message to inform the sent email
             await member.send(
                 self._followup.format(
                     nb=self._hardness, time=humanize.naturaldelta(self._timeout)
                 )
             )
+            # wait for the code
             message = await self._bot.wait_for(
                 "message",
                 check=lambda message: message.channel == member.dm_channel,
                 timeout=self._timeout,
             )
+            # check validity of the code
             if verification_code != message.content.strip():
                 await member.send(
                     "Le code entré n'est pas correct. Nous vous invitons à contacter un membre de l'administration."
                 )
                 return
 
+            # alls good
             await member.add_roles(role)
             await member.send("Le rôle de professeur vous a été attribué.")
 
@@ -181,13 +189,17 @@ class Roles(GroupCog, name="roles", description="Gestion des roles"):
             return
 
         member: discord.Member = payload.member
+        # get desired role
         roles: dict[str, Tuple[discord.Role, int]] = self._roles[guild.id]
 
+        # check if user has currently MPI role
         was_mpi: bool = roles.get("MPI", [])[0] in member.roles
+        # remove all previous roles for user
         await member.remove_roles(*map(lambda r: r[0], roles.values()))
         for role_name, (role, emoji) in roles.items():
             if emoji != payload.emoji.id:
                 continue
+            # special case
             if role_name == "Prof":
                 await self._prof_verification(member, role)
                 return

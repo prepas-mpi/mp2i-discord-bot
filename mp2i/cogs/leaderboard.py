@@ -33,6 +33,7 @@ class Leaderboard(Cog):
         """
         if not isinstance(message.author, discord.Member) or message.author.bot:
             return
+        # update member's messages count when receive a message from they
         MemberWrapper(message.author).message_count_increment()
 
     @hybrid_command(
@@ -67,11 +68,13 @@ class Leaderboard(Cog):
 
         await ctx.defer()
 
+        # get all members that have sent at least 1 message
         members_wrapper: Iterable[MemberWrapper] = filter(
             lambda mw: mw.message_count > 0,
             [MemberWrapper(m) for m in ctx.guild.members if not m.bot],
         )
 
+        # sort members by message or name in case of equality
         sorted_members: List[MemberWrapper] = sorted(
             members_wrapper,
             key=lambda m: (m.message_count, m.display_name),
@@ -85,11 +88,13 @@ class Leaderboard(Cog):
             )
             return
 
+        # save interaction's author information
         author: MemberWrapper = MemberWrapper(ctx.author)
         author_index: int = -1
         author_name: str = author.display_name
 
         entries: List[str] = []
+        # enumerate all members from first to the last
         for index, member in enumerate(sorted_members):
             name: str = member.display_name
             if match := self.__NAME_PATTERN.match(name):
@@ -113,7 +118,9 @@ class Leaderboard(Cog):
                 messages=author.message_count,
             )
 
+        # we are sure that there are at least one member
         first_member: MemberWrapper = sorted_members[0]
+        # get colour of the first member
         colour: Optional[int] = first_member.profile_colour or first_member.colour
 
         embed_paginator: EmbedPaginator = EmbedPaginator(

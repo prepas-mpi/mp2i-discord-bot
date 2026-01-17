@@ -70,6 +70,7 @@ class Pin(GroupCog, name="pins", description="Gestion des messages épinglés à
         bool
             True if succeed, False otherwise
         """
+        # check if message not already pinned
         result: Optional[Result[PinModel]] = database_executor.execute(
             select(PinModel).where(
                 PinModel.guild_id == guild.id,
@@ -104,6 +105,7 @@ class Pin(GroupCog, name="pins", description="Gestion des messages épinglés à
                     "Un administrateur a retenu ce message et devrait sans doute être publié sur le site."
                 )
             )
+
         container.add_item(
             ui.TextDisplay(
                 f"```yml\n{message.content[:255]}{'[...]' if len(message.content) > 255 else ''}\n```\nLe message est accessible [ici]({message.jump_url})"
@@ -112,14 +114,18 @@ class Pin(GroupCog, name="pins", description="Gestion des messages épinglés à
         view: ui.LayoutView = ui.LayoutView()
         view.add_item(container)
 
+        # send message in appropriate channel
         alert_message: discord.Message = await channel.send(
             view=view, allowed_mentions=discord.AllowedMentions.none()
         )
+        # pin that message
         await alert_message.pin()
 
+        # get first words of the selected message
         first_words: str = " ".join(message.content.strip().split(" ")[:6])
         if len(first_words) > 255:
             first_words = first_words[:255]
+        # update db
         database_executor.execute(
             insert(PinModel).values(
                 guild_id=guild.id,
@@ -176,6 +182,7 @@ class Pin(GroupCog, name="pins", description="Gestion des messages épinglés à
             return []
         await interaction.response.defer()
 
+        # get all pins. limit to 20 due to discord completion limitation
         result: Optional[Result[PinModel]] = database_executor.execute(
             select(PinModel)
             .where(
@@ -216,6 +223,7 @@ class Pin(GroupCog, name="pins", description="Gestion des messages épinglés à
             await interaction.response.send_message("Salon de pins non défini")
             return
         await interaction.response.defer()
+        # get all pins in TODO
         result: Optional[Result[PinModel]] = database_executor.execute(
             select(PinModel)
             .where(PinModel.guild_id == guild.id, PinModel.pin_status == PinStatus.TODO)
@@ -270,6 +278,7 @@ class Pin(GroupCog, name="pins", description="Gestion des messages épinglés à
             await interaction.response.send_message("Salon de pins non défini")
             return
         await interaction.response.defer()
+        # get pin from database
         result: Optional[Result[PinModel]] = database_executor.execute(
             select(PinModel).where(
                 PinModel.pin_id == int(id),
@@ -285,6 +294,7 @@ class Pin(GroupCog, name="pins", description="Gestion des messages épinglés à
         if not (pin := result.scalar_one_or_none()):
             await interaction.edit_original_response(content="Pin non trouvé")
             return
+        # update database
         database_executor.execute(
             update(PinModel)
             .values(pin_status=PinStatus.DONE)
@@ -293,7 +303,9 @@ class Pin(GroupCog, name="pins", description="Gestion des messages épinglés à
                 PinModel.guild_id == guild.id,
             )
         )
+        # get discord message
         message: discord.Message = await channel.fetch_message(pin.alert_message_id)
+        # unpin message
         await message.unpin()
         await interaction.edit_original_response(content="Pin terminé.")
 
@@ -321,7 +333,9 @@ class Pin(GroupCog, name="pins", description="Gestion des messages épinglés à
         if not channel:
             return
 
+        # get concerned message
         message: discord.Message = await channel.fetch_message(payload.message_id)
+        # get emoji count
         pins_count: int = getattr(
             discord.utils.get(message.reactions, emoji=guild_wrapper.pin_emoji),
             "count",
@@ -330,6 +344,7 @@ class Pin(GroupCog, name="pins", description="Gestion des messages épinglés à
         if pins_count < guild_wrapper.pin_min_emoji:
             return
 
+        # a consequent number of people has judge that the message has to be pinned
         await self._add_pin(guild_wrapper, message, True)
 
 

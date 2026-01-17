@@ -61,6 +61,7 @@ class ModCommands(Cog):
         await interaction.response.send_message(
             "Suppression des messages en cours...", ephemeral=True
         )
+        # purge num previous messages
         await interaction.channel.purge(limit=num)
         logger.info(
             "User %d deleted %d messages in channel %d.",
@@ -104,6 +105,7 @@ class ModCommands(Cog):
             channel.id,
             message,
         )
+        # send message in appropriate channel
         await channel.send(message)
         await interaction.response.send_message(
             f"Un message a été envoyé dans le salon {channel.jump_url}", ephemeral=True

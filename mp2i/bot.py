@@ -26,6 +26,7 @@ class Bot(commands.Bot):
         base_dir = "./mp2i/cogs"
         for root, _, files in os.walk(base_dir):
             for filename in files:
+                # skip files that aren't python script or start with _ as __init__ or __main__
                 if not filename.endswith(".py") or filename.startswith("_"):
                     continue
                 rel_path = os.path.relpath(root, "./mp2i")
