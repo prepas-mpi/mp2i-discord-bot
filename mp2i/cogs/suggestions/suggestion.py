@@ -366,7 +366,6 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
         )
         if status:
             statement = statement.where(
-                SuggestionModel.guild_id == interaction.guild.id,
                 SuggestionModel.suggestion_status == status,
             )
 
