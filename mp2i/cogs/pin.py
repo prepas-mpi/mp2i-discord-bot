@@ -47,7 +47,6 @@ class Pin(GroupCog, name="pins", description="Gestion des messages épinglés à
             )
         )
         bot.tree.add_command(ctx_menu)
-        self._roles: dict[int, dict[str, tuple[discord.Role, int]]] = {}
 
     async def _add_pin(
         self, guild: GuildWrapper, message: discord.Message, community: bool
