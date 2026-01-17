@@ -395,8 +395,8 @@ class Ticket(GroupCog, name="ticket", description="Gestion des tickets"):
 
         database_executor.execute(
             update(TicketModel)
-            .where(TicketModel.ticket_id == ticket.ticket_id)
             .values(closed=True)
+            .where(TicketModel.ticket_id == ticket.ticket_id)
         )
         await interaction.edit_original_response(content="Ticket fermé et archivé.")
 
