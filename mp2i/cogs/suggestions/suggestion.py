@@ -178,7 +178,7 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
         except discord.errors.NotFound:
             pass
         thread: discord.Thread = await channel.create_thread(
-            name=title, message=message
+            name=title, message=message, auto_archive_duration=10080
         )
         await thread.add_user(author)
         author_wrapper: MemberWrapper = MemberWrapper(author)
