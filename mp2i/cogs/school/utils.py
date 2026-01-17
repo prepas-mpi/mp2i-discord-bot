@@ -22,6 +22,19 @@ class SchoolCmdUtils(Cog):
     """
 
     def _get_emoji_by_status(self, member: discord.Member) -> Optional[discord.Emoji]:
+        """
+        Get emoji from member's status
+
+        Parameters
+        ----------
+        member : discord.Member
+            the concerned member
+
+        Return
+        ------
+        Optional[discord.Emoji]
+            the emoji if exists
+        """
         return discord.utils.get(member.guild.emojis, name=member.status.name)
 
     @command(name="members", description="Affiche la liste des membres d'une école")
@@ -30,6 +43,17 @@ class SchoolCmdUtils(Cog):
     @rename(name="nom")
     @guild_only()
     async def get_members(self, interaction: discord.Interaction, name: str) -> None:
+        """
+        List all members of a school
+
+        Parameters
+        ----------
+        interaction : discord.Interaction
+            the slash command
+
+        name : str
+            the school's name
+        """
         guild: Optional[discord.Guild] = interaction.guild
         if not guild:
             return
@@ -137,4 +161,12 @@ class SchoolCmdUtils(Cog):
 
 
 async def setup(bot: Bot) -> None:
+    """
+    Setting up utils for schools
+
+    Parameters
+    ----------
+    bot : Bot
+        The bot
+    """
     await bot.add_cog(SchoolCmdUtils())
