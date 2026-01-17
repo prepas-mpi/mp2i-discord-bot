@@ -469,6 +469,8 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
         if not result:
             result = database_executor.execute(
                 select(SuggestionModel).where(
+                    SuggestionModel.guild_id
+                    == interaction.guild.id,  # not required in the absolute due to suggestion_message
                     SuggestionModel.suggestion_message == interaction.channel_id,
                     SuggestionModel.suggestion_status == SuggestionStatus.OPEN,
                 )
