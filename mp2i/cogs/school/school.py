@@ -11,11 +11,12 @@ from discord.app_commands import (
     rename,
 )
 from discord.app_commands.errors import MissingAnyRole
-from discord.ext.commands import Bot, GroupCog, guild_only
+from discord.ext.commands import Bot, Cog, GroupCog, guild_only
 from sqlalchemy import Result, delete, insert, select, update
 from sqlalchemy.dialects.postgresql import insert as insert_psql
 
 import mp2i.database.executor as database_executor
+from mp2i.database.models.member import MemberModel
 from mp2i.database.models.promotion import PromotionModel
 from mp2i.database.models.school import SchoolModel, SchoolType
 from mp2i.utils.discord import has_any_role, has_any_roles_predicate
@@ -511,6 +512,24 @@ class School(GroupCog, name="school", description="Gestion des établissements")
                 ),
                 allowed_mentions=discord.AllowedMentions.none(),
             )
+
+    @Cog.listener("on_member_remove")
+    async def on_referent_leave(self, guild_member: discord.Member) -> None:
+        """
+        Remove referent from school when they leave the guild
+
+        Parameters
+        ----------
+        member : discord.Member
+            The school's referent
+        """
+        member: MemberModel = MemberModel(guild_member)
+
+        database_executor.execute(
+            update(SchoolModel)
+            .values(referent_id=None)
+            .where(SchoolModel.referent_id == member.member_id)
+        )
 
     async def attach_message(
         self, interaction: discord.Interaction, message: discord.Message
