@@ -294,7 +294,7 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
         view: ui.LayoutView = ui.LayoutView()
         view.add_item(container)
         # edit suggestion message with the new container
-        await message.edit(view=view)
+        await message.edit(view=view, embed=None, embeds=[])
         # remove reactions
         await message.clear_reactions()
 
