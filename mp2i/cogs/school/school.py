@@ -565,8 +565,9 @@ class School(GroupCog, name="school", description="Gestion des établissements")
         # get schools for which the member is referent
         matching_school: List[SchoolModel] = list(
             filter(
-                lambda school: school.referent
-                and school.referent.user_id == interaction.user.id,
+                lambda school: (
+                    school.referent and school.referent.user_id == interaction.user.id
+                ),
                 map(lambda row: row.tuple()[0], result.all()),
             )
         )
