@@ -16,7 +16,6 @@ from sqlalchemy import Result, delete, insert, select, update
 from sqlalchemy.dialects.postgresql import insert as insert_psql
 
 import mp2i.database.executor as database_executor
-from mp2i.database.models.member import MemberModel
 from mp2i.database.models.promotion import PromotionModel
 from mp2i.database.models.school import SchoolModel, SchoolType
 from mp2i.utils.discord import has_any_role, has_any_roles_predicate
@@ -523,7 +522,7 @@ class School(GroupCog, name="school", description="Gestion des établissements")
         member : discord.Member
             The school's referent
         """
-        member: MemberModel = MemberModel(guild_member)
+        member: MemberWrapper = MemberWrapper(guild_member)
 
         database_executor.execute(
             update(SchoolModel)
