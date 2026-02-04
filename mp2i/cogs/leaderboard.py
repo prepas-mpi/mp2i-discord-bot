@@ -68,6 +68,24 @@ class Leaderboard(Cog):
 
         await ctx.defer()
 
+        # get all members asynchronously
+        async def construct_member_async(member: discord.Member) -> MemberWrapper:
+            return MemberWrapper(member)
+
+        coroutines: List[Coroutine[Any, Any, MemberWrapper]] = [
+            construct_member_async(m) for m in ctx.guild.members if not m.bot
+        ]
+        # at most 50 tasks in parallel
+        semaphore: asyncio.Semaphore = asyncio.Semaphore(50)
+
+        async def exec(coroutine: Coroutine[Any, Any, MemberWrapper]) -> MemberWrapper:
+            async with semaphore:
+                return await coroutine
+
+        members_wrapper_list: List[MemberWrapper] = await asyncio.gather(
+            *(exec(coroutine) for coroutine in coroutines)
+        )
+
         # get all members that have sent at least 1 message
         members_wrapper: Iterable[MemberWrapper] = filter(
             lambda mw: mw.message_count > 0,
