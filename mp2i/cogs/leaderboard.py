@@ -1,6 +1,7 @@
+import asyncio
 import logging
 import re
-from typing import Iterable, List, Optional
+from typing import Any, Coroutine, Iterable, List, Optional
 
 import discord
 from discord.ext.commands import Bot, Cog, Context, guild_only, hybrid_command
@@ -89,7 +90,7 @@ class Leaderboard(Cog):
         # get all members that have sent at least 1 message
         members_wrapper: Iterable[MemberWrapper] = filter(
             lambda mw: mw.message_count > 0,
-            [MemberWrapper(m) for m in ctx.guild.members if not m.bot],
+            members_wrapper_list,
         )
 
         # sort members by message or name in case of equality
