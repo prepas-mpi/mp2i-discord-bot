@@ -344,7 +344,7 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
             select(SuggestionModel)
             .where(
                 SuggestionModel.guild_id == interaction.guild.id,
-                SuggestionModel.suggestion_title.istartswith(current),
+                SuggestionModel.suggestion_title.icontains(current),
                 SuggestionModel.suggestion_status == SuggestionStatus.OPEN,
             )
             .order_by(SuggestionModel.suggestion_title)

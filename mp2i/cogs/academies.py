@@ -56,7 +56,7 @@ class Academies(GroupCog, name="academies", description="Gestion des academies")
             select(AcademyModel)
             .where(
                 AcademyModel.guild_id == interaction.guild.id,
-                AcademyModel.academy_name.istartswith(current),
+                AcademyModel.academy_name.icontains(current),
             )
             .order_by(AcademyModel.academy_name)
             .limit(20)

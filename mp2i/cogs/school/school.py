@@ -208,7 +208,7 @@ async def _autocomplete_schools_name(
         select(SchoolModel)
         .where(
             SchoolModel.guild_id == interaction.guild.id,
-            SchoolModel.school_name.istartswith(current),
+            SchoolModel.school_name.icontains(current),
         )
         .order_by(SchoolModel.school_name)
         .limit(20)

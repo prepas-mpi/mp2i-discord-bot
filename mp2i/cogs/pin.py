@@ -187,7 +187,7 @@ class Pin(GroupCog, name="pins", description="Gestion des messages épinglés à
             select(PinModel)
             .where(
                 PinModel.guild_id == interaction.guild.id,
-                PinModel.first_words.istartswith(current),
+                PinModel.first_words.icontains(current),
                 PinModel.pin_status == PinStatus.TODO,
             )
             .order_by(PinModel.pin_id)
