@@ -4,7 +4,7 @@ services:
     image: postgres:18-alpine
     restart: unless-stopped
     volumes:
-      - mp2i_bot_postgresql:/var/lib/postgresql/data
+      - mp2i_bot_postgresql:/var/lib/postgresql
     environment:
       - POSTGRES_DB=bot
       - POSTGRES_USER=pg
