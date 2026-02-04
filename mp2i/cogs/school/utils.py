@@ -136,7 +136,9 @@ class SchoolCmdUtils(Cog):
         if type:
             statement = statement.where(SchoolModel.school_type == type)
 
-        result: Optional[Result[SchoolModel]] = database_executor.execute(statement)
+        result: Optional[Result[SchoolModel]] = database_executor.execute(
+            statement.order_by(SchoolModel.school_name)
+        )
 
         if not result:
             await interaction.response.send_message(
