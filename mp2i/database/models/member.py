@@ -1,7 +1,9 @@
 from typing import Any, List, Optional
 
 from sqlalchemy import (
+    VARCHAR,
     BigInteger,
+    Boolean,
     ForeignKey,
     Index,
     Integer,
@@ -48,6 +50,22 @@ class MemberModel(Base):
         ForeignKey("users.user_id", name="fk_member_user_id", ondelete="CASCADE"),
         nullable=False,
         info=dict(label="User ID", hint="Unique discord ID of the user."),
+    )
+
+    display_name: Mapped[str] = mapped_column(
+        VARCHAR(127),
+        nullable=False,
+        default="",
+        info=dict(
+            label="User displayname", hint="Displayname of the user on the guild"
+        ),
+    )
+
+    presence: Mapped[bool] = mapped_column(
+        Boolean(),
+        nullable=False,
+        default=False,
+        info=dict(label="User presence", hint="Presence of the user on the guild"),
     )
 
     message_count: Mapped[int] = mapped_column(

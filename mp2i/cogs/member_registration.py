@@ -21,6 +21,33 @@ class MemberRegistration(Cog):
         """
         MemberWrapper(member).register()
 
+    @Cog.listener("on_member_remove")
+    async def remove_member(self, member: discord.Member) -> None:
+        """
+        Update presence of the member
+
+        Parameters
+        ----------
+        member : discord.Member
+            the member that has just joined the guild
+        """
+        MemberWrapper(member).presence = False
+
+    @Cog.listener("on_member_update")
+    async def update_member(self, _: discord.Member, member: discord.Member) -> None:
+        """
+        Update display name of the member
+
+        Parameters
+        ----------
+        _ : discord.Member
+            the member before the update
+
+        member : discord.Member
+            the member after the update
+        """
+        MemberWrapper(member).display_name = member.display_name
+
 
 async def setup(bot: Bot) -> None:
     """

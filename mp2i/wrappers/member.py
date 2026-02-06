@@ -85,19 +85,32 @@ class MemberWrapper(ObjectWrapper[discord.Member]):
         MemberModel
             Newly create MemberModel if no member was found, MemberModel in database otherwise
         """
+        result: Optional[Result[MemberModel]] = None
+
         if self.__model:
-            return self.__model
-
-        UserWrapper(self._boxed._user).register()
-
-        result: Optional[Result[MemberModel]] = database_executor.execute(
-            insert(MemberModel)
-            .values(
-                user_id=self._boxed.id,
-                guild_id=self._boxed.guild.id,
+            result = database_executor.execute(
+                update(MemberModel)
+                .where(
+                    MemberModel.user_id == self._boxed.id,
+                    MemberModel.guild_id == self._boxed.guild.id,
+                )
+                .values(display_name=self._boxed.display_name, presence=True)
+                .returning(MemberModel)
             )
-            .returning(MemberModel)
-        )
+
+        else:
+            UserWrapper(self._boxed._user).register()
+
+            result = database_executor.execute(
+                insert(MemberModel)
+                .values(
+                    user_id=self._boxed.id,
+                    guild_id=self._boxed.guild.id,
+                    display_name=self._boxed.display_name,
+                    presence=True,
+                )
+                .returning(MemberModel)
+            )
 
         if not result:
             raise InsertException("member")
@@ -117,6 +130,40 @@ class MemberWrapper(ObjectWrapper[discord.Member]):
         if not self.__model:
             return -1
         return self.__model.member_id
+
+    @property
+    def display_name(self) -> str:
+        if not self.__model:
+            return self._boxed.display_name
+        return self.__model.display_name
+
+    @display_name.setter
+    def display_name(self, display_name: str) -> None:
+        if not self.__model:
+            return
+        self.__model.display_name = display_name
+        self._update(display_name=display_name)
+
+    @property
+    def presence(self) -> Optional[bool]:
+        """
+        Get member's presence
+
+        Returns
+        -------
+        Optional[bool]
+            Member's presence if it has been set, None otherwise
+        """
+        if not self.__model:
+            return None
+        return self.__model.presence
+
+    @presence.setter
+    def presence(self, presence: bool) -> None:
+        if not self.__model:
+            return
+        self.__model.presence = presence
+        self._update(presence=presence)
 
     @property
     def message_count(self) -> int:
