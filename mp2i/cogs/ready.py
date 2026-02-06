@@ -36,14 +36,21 @@ class Ready(Cog):
                 guild_wrapper.register()
                 logger.debug("Chunking guild")
                 await guild_wrapper.chunk()
-                logger.debug("Begin registering members")
+                logger.info(f"Begin registering members {len(guild_wrapper.members)}")
+                index: int = 0
                 for member in guild_wrapper.members:
+                    if index % 200 == 0:
+                        logger.info(
+                            f"... @ {index * 100 // len(guild_wrapper.members)}"
+                        )
                     if not member.bot:
                         MemberWrapper(member).register()
+                    index += 1
             logger.info("Bot is ready and has register every member.")
         else:
             logger.info("Skipping members registration.")
             logger.info("Bot is ready.")
+
 
 async def setup(bot: Bot) -> None:
     """
