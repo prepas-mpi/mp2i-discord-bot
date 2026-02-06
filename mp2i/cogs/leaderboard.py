@@ -1,11 +1,14 @@
-import asyncio
 import logging
 import re
-from typing import Any, Coroutine, Iterable, List, Optional
+from typing import List, Optional, Sequence
 
 import discord
 from discord.ext.commands import Bot, Cog, Context, guild_only, hybrid_command
+from sqlalchemy import Result
+from sqlalchemy.sql import select
 
+import mp2i.database.executor as database_executor
+from mp2i.database.models.member import MemberModel
 from mp2i.utils.paginator import EmbedPaginator
 from mp2i.wrappers.member import MemberWrapper
 
@@ -69,36 +72,24 @@ class Leaderboard(Cog):
 
         await ctx.defer()
 
-        # get all members asynchronously
-        async def construct_member_async(member: discord.Member) -> MemberWrapper:
-            return MemberWrapper(member)
-
-        coroutines: List[Coroutine[Any, Any, MemberWrapper]] = [
-            construct_member_async(m) for m in ctx.guild.members if not m.bot
-        ]
-        # at most 50 tasks in parallel
-        semaphore: asyncio.Semaphore = asyncio.Semaphore(50)
-
-        async def exec(coroutine: Coroutine[Any, Any, MemberWrapper]) -> MemberWrapper:
-            async with semaphore:
-                return await coroutine
-
-        members_wrapper_list: List[MemberWrapper] = await asyncio.gather(
-            *(exec(coroutine) for coroutine in coroutines)
+        # get all members
+        result: Optional[Result[MemberModel]] = database_executor.execute(
+            select(MemberModel)
+            .where(
+                MemberModel.guild_id == ctx.guild.id,
+                MemberModel.presence,
+                MemberModel.message_count > 0,
+            )
+            .order_by(MemberModel.message_count.desc(), MemberModel.display_name.asc())
         )
 
-        # get all members that have sent at least 1 message
-        members_wrapper: Iterable[MemberWrapper] = filter(
-            lambda mw: mw.message_count > 0,
-            members_wrapper_list,
-        )
+        if not result:
+            await ctx.reply(
+                "Impossible de contacter la base de données.", ephemeral=True
+            )
+            return
 
-        # sort members by message or name in case of equality
-        sorted_members: List[MemberWrapper] = sorted(
-            members_wrapper,
-            key=lambda m: (m.message_count, m.display_name),
-            reverse=True,
-        )
+        sorted_members: Sequence[MemberModel] = result.scalars().all()
 
         if len(sorted_members) == 0:
             await ctx.reply(
@@ -118,7 +109,7 @@ class Leaderboard(Cog):
             name: str = member.display_name
             if match := self.__NAME_PATTERN.match(name):
                 name = match.group(1)
-            if member == author:
+            if member.member_id == author.member_id:
                 author_index = index
                 author_name = name
             entries.append(
@@ -140,7 +131,9 @@ class Leaderboard(Cog):
         # we are sure that there are at least one member
         first_member: MemberWrapper = sorted_members[0]
         # get colour of the first member
-        colour: Optional[int] = first_member.profile_colour or first_member.colour
+        colour: Optional[int] = first_member.profile_colour
+        if not colour and (colour_member := ctx.guild.get_member(first_member.user_id)):
+            colour = colour_member.colour.value
 
         embed_paginator: EmbedPaginator = EmbedPaginator(
             author=ctx.author.id,
