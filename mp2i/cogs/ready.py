@@ -35,7 +35,6 @@ class Ready(Cog):
             for guild_wrapper in map(GuildWrapper, self._bot.guilds):
                 guild_wrapper.register()
                 logger.debug("Chunking guild")
-                await guild_wrapper.chunk()
                 logger.info(f"Begin registering members {len(guild_wrapper.members)}")
                 index: int = 0
                 for member in guild_wrapper.members:
