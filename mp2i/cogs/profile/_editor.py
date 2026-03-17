@@ -1,5 +1,5 @@
 import datetime
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Self
 
 import discord
 import discord.ui as ui
@@ -103,7 +103,7 @@ class ProfileEditorChangeColourModal(ui.Modal, title="Entrez une couleur"):
             .values(profile_colour=self._member.profile_colour)
             .where(MemberModel.member_id == self._member.member_id)
         )
-        self._editor._refresh_content()
+        self._editor = self._editor._refresh_content()
         await interaction.response.edit_message(view=self._editor)
 
 
@@ -150,7 +150,7 @@ class ProfileEditorRemovePromotion(ui.Button["ProfileEditorView"]):
                 self._member.promotions,
             )
         )
-        self._view._refresh_content()
+        self._view = self._view._refresh_content()
         await interaction.response.edit_message(view=self._view)
 
 
@@ -205,7 +205,7 @@ class ProfileEditorSchoolYear(ui.Select):
             interaction, self._member, self._school, year
         )
         self._member.as_model.promotions.append(prom)
-        self._editor._refresh_content()
+        self._editor = self._editor._refresh_content()
         await interaction.response.edit_message(view=self._editor)
 
 
@@ -293,7 +293,10 @@ class ProfileEditorAddPromotion(ui.Button["ProfileEditorView"]):
         )
         result: Optional[Result[SchoolModel]] = database_executor.execute(
             select(SchoolModel)
-            .where(~SchoolModel.school_id.in_(already_in_schools), SchoolModel.guild_id == interaction.guild_id)
+            .where(
+                ~SchoolModel.school_id.in_(already_in_schools),
+                SchoolModel.guild_id == interaction.guild_id,
+            )
             .order_by(SchoolModel.school_name)
         )
 
@@ -342,7 +345,7 @@ class ProfileEditorView(ui.LayoutView):
         self._member: MemberWrapper = member
         self._refresh_content()
 
-    def _refresh_content(self):
+    def _refresh_content(self) -> Self:
         """
         Refresh all items
         """
@@ -375,3 +378,4 @@ class ProfileEditorView(ui.LayoutView):
             container.accent_colour = self._member.profile_colour
 
         self.add_item(container)
+        return self

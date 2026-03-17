@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional
+from typing import List, Optional, Self
 
 import discord
 import discord.ui as ui
@@ -127,7 +127,7 @@ class SchoolNameModal(ui.Modal, title="Entrez un nouveau nom"):
             .values(school_name=self.name.value)
         )
         self._school.school_name = self.name.value
-        self._settings._refresh_settings()
+        self._settings = self._settings._refresh_settings()
         logger.info(
             "User %d has changed name of school %d to user %s.",
             interaction.user.id,
@@ -220,7 +220,7 @@ class SchoolThreadSelector(ui.ChannelSelect["SchoolSettings"]):
             .values(thread_id=self.values[0].id)
         )
         self._school.thread_id = self.values[0].id
-        self._view._refresh_settings()
+        self._view = self._view._refresh_settings()
         logger.info(
             "User %d has changed thread of school %d to thread %d.",
             interaction.user.id,
@@ -309,7 +309,7 @@ class SchoolReferentButton(ui.Button["SchoolSettings"]):
         )
         self._school.referent_id = None
         self._school.referent = None
-        self._view._refresh_settings()
+        self._view = self._view._refresh_settings()
         logger.info(
             "User %d has removed referent of school %d.",
             interaction.user.id,
@@ -411,7 +411,7 @@ class SchoolReferentSelector(ui.UserSelect["SchoolSettings"]):
             logger.error(
                 "Could not add %s role to user %d.", role.name, member_wrapper.id
             )
-        self._view._refresh_settings()
+        self._view = self._view._refresh_settings()
         logger.info(
             "User %d has changed referent of school %d to user %d.",
             interaction.user.id,
@@ -445,7 +445,7 @@ class SchoolSettings(ui.LayoutView):
         self._school = school
         self._refresh_settings()
 
-    def _refresh_settings(self) -> None:
+    def _refresh_settings(self) -> Self:
         """
         Remove previous children and add fresh ones
         """
@@ -488,3 +488,4 @@ class SchoolSettings(ui.LayoutView):
         self.add_item(container)
         self.add_item(ui.ActionRow(SchoolThreadSelector(self._school)))
         self.add_item(ui.ActionRow(SchoolReferentSelector(self._guild, self._school)))
+        return self
