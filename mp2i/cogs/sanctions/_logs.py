@@ -82,19 +82,19 @@ class VictimText(ui.TextDisplay):
 
 class StaffText(ui.TextDisplay):
     def __init__(self, user: discord.User, type: SanctionType):
-        text: str = ""
+        text: str = f"{user.mention} ({user.name}) "
         if type == SanctionType.WARN:
-            text = f"{user.name} a été averti."
+            text += "a été averti."
         elif type == SanctionType.TIMEOUT:
-            text = f"{user.name} a été rendu muet."
+            text += "a été rendu muet."
         elif type == SanctionType.UNTIMEOUT:
-            text = f"{user.name} n'est plus muet."
+            text += "n'est plus muet."
         elif type == SanctionType.KICK:
-            text = f"{user.name} a été expulsé."
+            text += "a été expulsé."
         elif type == SanctionType.BAN:
-            text = f"{user.name} a été banni."
+            text += "a été banni."
         elif type == SanctionType.UNBAN:
-            text = f"{user.name} a été débanni."
+            text += "a été débanni."
         super().__init__(text)
 
 
