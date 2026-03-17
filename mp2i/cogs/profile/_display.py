@@ -114,7 +114,7 @@ class ProfileView(ui.LayoutView):
                     lambda prom: prom.school.school_type == SchoolType.CPGE,
                     member_wrapper.promotions,
                 ),
-                key=lambda prom: (prom.promotion_year, prom.school.school_name),
+                key=lambda prom: (prom.promotion_year or 0, prom.school.school_name),
             )
 
             if len(list(cpge)) > 0:
@@ -136,7 +136,7 @@ class ProfileView(ui.LayoutView):
                     lambda prom: prom.school.school_type == SchoolType.ECOLE,
                     member_wrapper.promotions,
                 ),
-                key=lambda prom: (prom.promotion_year, prom.school.school_name),
+                key=lambda prom: (prom.promotion_year or 0, prom.school.school_name),
             )
             if len(list(ecole)) > 0:
                 container.add_item(ui.TextDisplay("### Post-CPGE"))
