@@ -382,7 +382,7 @@ class School(GroupCog, name="school", description="Gestion des établissements")
             return
         if not member:
             member = interaction.user
-        await interaction.response.defer()
+        await interaction.response.defer(ephemeral=True)
         if interaction.user.id != member.id:
             try:
                 await has_any_roles_predicate(
