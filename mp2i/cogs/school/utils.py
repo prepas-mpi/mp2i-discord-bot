@@ -91,7 +91,7 @@ class SchoolCmdUtils(Cog):
         for model, member, year in members:
             if not member:
                 continue
-            text: str = f" `{member.name}`・{member.mention}・{year}"
+            text: str = f" `{member.name}`・{member.mention}" + (f"・{year}" if year else "")
             # looking at referent
             if model.member_id == school.referent_id:
                 referent = text + f" {self._get_emoji_by_status(member)}"
