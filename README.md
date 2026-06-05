@@ -1,6 +1,6 @@
 # Prépas MP2I/MPI
 
-Ce bot discord a pour but d'ajouter des fonctionnalités au serveur discord [Prépas MP2I/MPI](https://discord.prepas-mp2i.org).
+Ce bot discord a pour but d'ajouter des fonctionnalités au serveur discord [Prépas MP2I/MPI](https://discord.prepas-mp2i.fr).
 
 ## Installation
 
