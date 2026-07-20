@@ -12,6 +12,10 @@ from mp2i.wrappers.member import MemberWrapper
 
 logger: logging.Logger = logging.getLogger(__name__)
 
+REF_ECOLE_SEPARATOR: str = "#"
+REF_CPGE_SEPARATOR: str = "@"
+LAMBADA_SEPARATOR: str = "|"
+
 
 async def _remove_old_referent(
     interaction: discord.Interaction, guild: GuildWrapper, school: SchoolModel
@@ -55,12 +59,26 @@ async def _remove_old_referent(
         )
         if old_referent:
             try:
+                await old_referent.edit(
+                    nick=old_referent.display_name
+                        .replace(REF_CPGE_SEPARATOR, LAMBADA_SEPARATOR)
+                        .replace(REF_ECOLE_SEPARATOR, LAMBADA_SEPARATOR)
+                )
+            except Exception:
+                logger.error(
+                    "Could not rename user %d for %s role.",
+                    old_referent.id,
+                    role.name,
+                    exc_info=True,
+                )
+            try:
                 await old_referent.remove_roles(role)
             except Exception:
                 logger.error(
                     "Could not remove %s role from user %d.",
                     role.name,
                     old_referent.id,
+                    exc_info=True,
                 )
     return role
 
@@ -406,10 +424,23 @@ class SchoolReferentSelector(ui.UserSelect["SchoolSettings"]):
         self._school.referent_id = member_wrapper.member_id
         self._school.referent = member_wrapper.as_model
         try:
+            await member_wrapper.edit(nick=member_wrapper.display_name.replace(
+                LAMBADA_SEPARATOR,
+                REF_CPGE_SEPARATOR if self._school.school_type == SchoolType.CPGE else REF_ECOLE_SEPARATOR,
+            ))
+        except Exception:
+            logger.error(
+                "Could not rename user %d for %s role.",
+                member_wrapper.user_id,
+                role.name,
+                exc_info=True,
+            )
+        try:
             await member_wrapper.add_roles(role)
         except Exception:
             logger.error(
-                "Could not add %s role to user %d.", role.name, member_wrapper.id
+                "Could not add %s role to user %d.", role.name, member_wrapper.id,
+                exc_info=True,
             )
         self._view = self._view._refresh_settings()
         logger.info(
