@@ -115,7 +115,7 @@ async def add_member_to_school(
             promotion_year=year,
         )
         .on_conflict_do_update(
-            index_elements=["promotion_id"], set_={"promotion_year": year}
+            constraint="promotions_school_member_cstrnt", set_={"promotion_year": year}
         )
         .returning(PromotionModel)
     )

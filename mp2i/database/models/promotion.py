@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy import BigInteger, ForeignKey, Sequence, UniqueConstraint
+from sqlalchemy import BigInteger, ForeignKey, Index, Sequence, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from mp2i.database.models.school import SchoolModel
@@ -14,7 +14,9 @@ class PromotionModel(Base):
     """
 
     __tablename__ = "promotions"
-    __tableargs__ = (UniqueConstraint("school_id", "member_id"),)
+    __tableargs__ = (
+        UniqueConstraint("school_id", "member_id", name="promotions_school_member_cstrnt"),
+    )
 
     promotion_id: Mapped[int] = mapped_column(
         BigInteger(),
