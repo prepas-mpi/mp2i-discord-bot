@@ -21,7 +21,7 @@ class Leaderboard(Cog):
     """
 
     __ENTRY_FORMAT: str = "{place}. **{name}** : {messages} messages"
-    __NAME_PATTERN: re.Pattern = re.compile(r"([^|@]+)([@|#]):?[^@#|]*")
+    __NAME_PATTERN: re.Pattern = re.compile(r"([^@#|]+)([@#|]):?[^@#|]*")
     __ENTRIES_PER_PAGE: int = 10
 
     @Cog.listener("on_message")
