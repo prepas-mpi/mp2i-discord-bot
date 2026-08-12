@@ -108,7 +108,7 @@ class Leaderboard(Cog):
         for index, member in enumerate(sorted_members):
             name: str = member.display_name
             if match := self.__NAME_PATTERN.match(name):
-                name = match.group(1)
+                name = match.group(1).rstrip()
             if member.member_id == author.member_id:
                 author_index = index
                 author_name = name
