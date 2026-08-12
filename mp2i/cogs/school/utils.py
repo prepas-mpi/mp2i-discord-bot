@@ -1,7 +1,7 @@
 from typing import Any, List, Optional, Tuple
 
 import discord
-import discord.ui as ui
+from discord import ui
 from discord.app_commands import autocomplete, command, describe, guild_only, rename
 from discord.ext.commands import Bot, Cog
 from discord.member import Member
@@ -91,7 +91,9 @@ class SchoolCmdUtils(Cog):
         for model, member, year in members:
             if not member:
                 continue
-            text: str = f" `{member.name}`・{member.mention}" + (f"・{year}" if year else "")
+            text: str = f" `{member.name}`・{member.mention}" + (
+                f"・{year}" if year else ""
+            )
             # looking at referent
             if model.member_id == school.referent_id:
                 referent = text + f" {self._get_emoji_by_status(member)}"

@@ -1,7 +1,7 @@
 from typing import Any, Callable, Optional
 
 import discord
-import discord.ui as ui
+from discord import ui
 
 from mp2i.database.models.suggestion import SuggestionModel, SuggestionStatus
 

@@ -1,7 +1,7 @@
 from typing import Iterator, List
 
 import discord
-import discord.ui as ui
+from discord import ui
 
 from mp2i.database.models.promotion import PromotionModel
 from mp2i.database.models.school import SchoolType

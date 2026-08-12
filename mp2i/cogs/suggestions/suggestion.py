@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, List, Optional
 
 import discord
-import discord.ui as ui
+from discord import ui
 from discord.app_commands import (
     Choice,
     autocomplete,

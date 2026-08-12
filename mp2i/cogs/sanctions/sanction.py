@@ -1,10 +1,10 @@
 import datetime
-import humanize
 import logging
 from math import ceil
 from typing import List, Optional, Sequence
 
 import discord
+import humanize
 from discord.app_commands import (
     ContextMenu,
     command,
@@ -137,7 +137,9 @@ class Sanction(GroupCog, name="sanction", description="Gestion des sanctions"):
             )
         if type:
             statement = statement.where(SanctionModel.sanction_type == type)
-        result: Optional[Result[SanctionModel]] = database_executor.execute(statement.order_by(SanctionModel.sanction_id.desc()))
+        result: Optional[Result[SanctionModel]] = database_executor.execute(
+            statement.order_by(SanctionModel.sanction_id.desc())
+        )
         if not result:
             await interaction.edit_original_response(
                 content="Aucune réponse de la base de données."
@@ -155,7 +157,9 @@ class Sanction(GroupCog, name="sanction", description="Gestion des sanctions"):
             )
             content += f"**Membre :** {victim.mention if victim else sanction.victim.user_id}\n"
             if sanction.sanction_duration:
-                content += f"**Temps :** {humanize.naturaldelta(sanction.sanction_duration)}\n"
+                content += (
+                    f"**Temps :** {humanize.naturaldelta(sanction.sanction_duration)}\n"
+                )
 
             if sanction.staff:
                 staff: Optional[discord.Member] = interaction.guild.get_member(

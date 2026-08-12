@@ -2,7 +2,7 @@ import logging
 from typing import List, Optional, Self
 
 import discord
-import discord.ui as ui
+from discord import ui
 from sqlalchemy import Result, select, update
 
 import mp2i.database.executor as database_executor
@@ -60,9 +60,9 @@ async def _remove_old_referent(
         if old_referent:
             try:
                 await old_referent.edit(
-                    nick=old_referent.display_name
-                        .replace(REF_CPGE_SEPARATOR, LAMBADA_SEPARATOR)
-                        .replace(REF_ECOLE_SEPARATOR, LAMBADA_SEPARATOR)
+                    nick=old_referent.display_name.replace(
+                        REF_CPGE_SEPARATOR, LAMBADA_SEPARATOR, 1
+                    ).replace(REF_ECOLE_SEPARATOR, LAMBADA_SEPARATOR, 1)
                 )
             except Exception:
                 logger.error(
@@ -119,6 +119,9 @@ class SchoolNameModal(ui.Modal, title="Entrez un nouveau nom"):
         """
         if not interaction.guild:
             return
+
+        await interaction.response.defer()
+
         result: Optional[Result[SchoolModel]] = database_executor.execute(
             select(SchoolModel).where(
                 SchoolModel.guild_id == self._school.guild_id,
@@ -127,12 +130,12 @@ class SchoolNameModal(ui.Modal, title="Entrez un nouveau nom"):
         )
 
         if not result:
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 "Impossible de contacter la base de données.", ephemeral=True
             )
             return
         if result.scalar_one_or_none():
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 "Un établissement avec ce nom existe déjà.", ephemeral=True
             )
             return
@@ -152,7 +155,7 @@ class SchoolNameModal(ui.Modal, title="Entrez un nouveau nom"):
             self._school.school_id,
             self.name.value,
         )
-        await interaction.response.edit_message(
+        await interaction.edit_original_response(
             view=self._settings, allowed_mentions=discord.AllowedMentions.none()
         )
 
@@ -230,6 +233,9 @@ class SchoolThreadSelector(ui.ChannelSelect["SchoolSettings"]):
         """
         if not self._view:
             return
+
+        await interaction.response.defer()
+
         database_executor.execute(
             update(SchoolModel)
             .where(
@@ -245,7 +251,7 @@ class SchoolThreadSelector(ui.ChannelSelect["SchoolSettings"]):
             self._school.school_id,
             self.values[0].id,
         )
-        await interaction.response.edit_message(
+        await interaction.edit_original_response(
             view=self._view, allowed_mentions=discord.AllowedMentions.none()
         )
 
@@ -297,6 +303,9 @@ class SchoolReferentButton(ui.Button["SchoolSettings"]):
                 "Cet établissement n'a pas de référent.", ephemeral=True
             )
             return
+
+        await interaction.response.defer()
+
         role_name: str = "Référent " + (
             "CPGE" if self._school.school_type == SchoolType.CPGE else "École"
         )
@@ -306,7 +315,7 @@ class SchoolReferentButton(ui.Button["SchoolSettings"]):
             logger.error(
                 "Référent %s is not defined for guild %d", role_name, self._guild.id
             )
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 "Le rôle de référent n'est pas défini pour ce type d'école.",
                 ephemeral=True,
             )
@@ -333,7 +342,7 @@ class SchoolReferentButton(ui.Button["SchoolSettings"]):
             interaction.user.id,
             self._school.school_id,
         )
-        await interaction.response.edit_message(
+        await interaction.edit_original_response(
             view=self._view, allowed_mentions=discord.AllowedMentions.none()
         )
 
@@ -386,9 +395,12 @@ class SchoolReferentSelector(ui.UserSelect["SchoolSettings"]):
                 "Cet utilisateur n'est pas sur le serveur.", ephemeral=True
             )
             return
+
+        await interaction.response.defer(ephemeral=True)
+
         member_wrapper: MemberWrapper = MemberWrapper(member)
         if member_wrapper.member_id == self._school.referent_id:
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 "Cet utilisateur est déjà référent de cet établissement.",
                 ephemeral=True,
             )
@@ -401,7 +413,7 @@ class SchoolReferentSelector(ui.UserSelect["SchoolSettings"]):
             )
         )
         if len(matching_schools) == 0:
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 "Cet utilisateur n'a jamais été dans cet établissement, il ne peut donc être référent de ce-dernier.",
                 ephemeral=True,
             )
@@ -424,14 +436,19 @@ class SchoolReferentSelector(ui.UserSelect["SchoolSettings"]):
         self._school.referent_id = member_wrapper.member_id
         self._school.referent = member_wrapper.as_model
         try:
-            await member_wrapper.edit(nick=member_wrapper.display_name.replace(
-                LAMBADA_SEPARATOR,
-                REF_CPGE_SEPARATOR if self._school.school_type == SchoolType.CPGE else REF_ECOLE_SEPARATOR,
-            ))
+            await member_wrapper.edit(
+                nick=member_wrapper.display_name.replace(
+                    LAMBADA_SEPARATOR,
+                    REF_CPGE_SEPARATOR
+                    if self._school.school_type == SchoolType.CPGE
+                    else REF_ECOLE_SEPARATOR,
+                    1,  # replace only the first occurence
+                )
+            )
         except Exception:
             logger.error(
                 "Could not rename user %d for %s role.",
-                member_wrapper.user_id,
+                member_wrapper.id,
                 role.name,
                 exc_info=True,
             )
@@ -439,7 +456,9 @@ class SchoolReferentSelector(ui.UserSelect["SchoolSettings"]):
             await member_wrapper.add_roles(role)
         except Exception:
             logger.error(
-                "Could not add %s role to user %d.", role.name, member_wrapper.id,
+                "Could not add %s role to user %d.",
+                role.name,
+                member_wrapper.id,
                 exc_info=True,
             )
         self._view = self._view._refresh_settings()
@@ -449,7 +468,7 @@ class SchoolReferentSelector(ui.UserSelect["SchoolSettings"]):
             self._school.school_id,
             member_wrapper.id,
         )
-        await interaction.response.edit_message(
+        await interaction.edit_original_response(
             view=self._view, allowed_mentions=discord.AllowedMentions.none()
         )
 

@@ -1,5 +1,5 @@
 import discord
-import discord.ui as ui
+from discord import ui
 
 from mp2i.database.models.sanction import SanctionType
 

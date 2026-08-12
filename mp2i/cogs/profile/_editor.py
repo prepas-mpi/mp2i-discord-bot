@@ -2,7 +2,7 @@ import datetime
 from typing import Any, List, Optional, Self
 
 import discord
-import discord.ui as ui
+from discord import ui
 from sqlalchemy import Result, select, update
 
 import mp2i.database.executor as database_executor
@@ -98,13 +98,16 @@ class ProfileEditorChangeColourModal(ui.Modal, title="Entrez une couleur"):
                 ephemeral=True,
             )
             return
+
+        await interaction.response.defer()
+
         database_executor.execute(
             update(MemberModel)
             .values(profile_colour=self._member.profile_colour)
             .where(MemberModel.member_id == self._member.member_id)
         )
         self._editor = self._editor._refresh_content()
-        await interaction.response.edit_message(view=self._editor)
+        await interaction.edit_original_response(view=self._editor)
 
 
 class ProfileEditorRemovePromotion(ui.Button["ProfileEditorView"]):
@@ -143,6 +146,7 @@ class ProfileEditorRemovePromotion(ui.Button["ProfileEditorView"]):
         """
         if not self._member.as_model or not self._view:
             return
+
         await remove_member_from_school(interaction, self._member, self._promotion)
         self._member.as_model.promotions = list(
             filter(
@@ -366,7 +370,9 @@ class ProfileEditorView(ui.LayoutView):
         for promotion in self._member.promotions:
             container.add_item(
                 ui.Section(
-                    ui.TextDisplay(promotion.school.school_name),
+                    ui.TextDisplay(
+                        f"{promotion.school.school_name} ({promotion.promotion_year})"
+                    ),
                     accessory=ProfileEditorRemovePromotion(self._member, promotion),
                 )
             )

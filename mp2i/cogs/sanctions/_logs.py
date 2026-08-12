@@ -3,8 +3,8 @@ import logging
 from typing import Optional
 
 import discord
-import discord.ui as ui
 import humanize
+from discord import ui
 from sqlalchemy import insert
 
 import mp2i.database.executor as database_executor

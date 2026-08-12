@@ -1,7 +1,7 @@
 from typing import Optional
 
 import discord
-import discord.ui as ui
+from discord import ui
 from sqlalchemy import update
 
 import mp2i.database.executor as database_executor
