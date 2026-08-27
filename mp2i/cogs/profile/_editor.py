@@ -6,7 +6,11 @@ from discord import ui
 from sqlalchemy import Result, select, update
 
 import mp2i.database.executor as database_executor
-from mp2i.cogs.school.school import add_member_to_school, remove_member_from_school
+from mp2i.cogs.school.school import (
+    add_member_to_school,
+    promotion_years2str,
+    remove_member_from_school,
+)
 from mp2i.database.models.member import MemberModel
 from mp2i.database.models.promotion import PromotionModel
 from mp2i.database.models.school import SchoolModel
@@ -158,9 +162,75 @@ class ProfileEditorRemovePromotion(ui.Button["ProfileEditorView"]):
         await interaction.response.edit_message(view=self._view)
 
 
-class ProfileEditorSchoolYear(ui.Select):
+class ProfileEditorSchoolExitYear(ui.Select):
     """
-    Let user select a year for the promotion
+    Let user select an exit year for the promotion
+    """
+
+    def __init__(
+        self,
+        editor: "ProfileEditorView",
+        member: MemberWrapper,
+        school: SchoolModel,
+        entry_year: Optional[int],
+    ):
+        """
+        Initialize all values
+
+        Parameters
+        ----------
+        editor : ProfileEditorView
+            The initial view to edit profile
+
+        member : MemberWrapper
+            The concerned member
+
+        school : SchoolModel
+            The concerned school
+
+        entry_year : Optional[int]
+            Year in which the member entered in the school
+        """
+        super().__init__(
+            placeholder="Choisissez une année de sortie",
+            options=[discord.SelectOption(label="Non déclarée", value="0")]
+            + [
+                discord.SelectOption(label=f"{year}", value=f"{year}")
+                for year in range(2021, datetime.datetime.now().year + 4)
+            ],
+            custom_id=f"schools::exit_year::{school.school_id}",
+        )
+        self._editor: "ProfileEditorView" = editor
+        self._member: MemberWrapper = member
+        self._school: SchoolModel = school
+        self._entry_year = entry_year
+
+    async def callback(self, interaction: discord.Interaction) -> None:
+        """
+        User has selected a year
+
+        Parameters
+        ----------
+        interaction : discord.Interaction
+            The button interaction
+        """
+        if not self._member.as_model:
+            return
+        exit_year: Optional[int] = (
+            int(self.values[0]) if self.values[0] != "0" else None
+        )
+        prom: Optional[PromotionModel] = await add_member_to_school(
+            interaction, self._member, self._school, self._entry_year, exit_year
+        )
+        self._member.as_model.promotions.append(prom)
+        self._editor = self._editor._refresh_content()
+        await interaction.response.edit_message(view=self._editor)
+
+
+# TODO: refactor with class above
+class ProfileEditorSchoolEntryYear(ui.Select):
+    """
+    Let user select an entry year for the promotion
     """
 
     def __init__(
@@ -181,13 +251,13 @@ class ProfileEditorSchoolYear(ui.Select):
             The concerned school
         """
         super().__init__(
-            placeholder="Choisissez une année de promotion",
+            placeholder="Choisissez une année d'entrée",
             options=[discord.SelectOption(label="Non déclarée", value="0")]
             + [
                 discord.SelectOption(label=f"{year}", value=f"{year}")
                 for year in range(2021, datetime.datetime.now().year + 4)
             ],
-            custom_id=f"schools::year::{school.school_id}",
+            custom_id=f"schools::entry_year::{school.school_id}",
         )
         self._editor: "ProfileEditorView" = editor
         self._member: MemberWrapper = member
@@ -204,13 +274,21 @@ class ProfileEditorSchoolYear(ui.Select):
         """
         if not self._member.as_model:
             return
-        year: Optional[int] = int(self.values[0]) if self.values[0] != "0" else None
-        prom: Optional[PromotionModel] = await add_member_to_school(
-            interaction, self._member, self._school, year
+        entry_year: Optional[int] = (
+            int(self.values[0]) if self.values[0] != "0" else None
         )
-        self._member.as_model.promotions.append(prom)
-        self._editor = self._editor._refresh_content()
-        await interaction.response.edit_message(view=self._editor)
+        view: ui.LayoutView = ui.LayoutView()
+        view.add_item(
+            ui.ActionRow(
+                ProfileEditorSchoolExitYear(
+                    self._editor,
+                    self._member,
+                    self._school,
+                    entry_year,
+                )
+            )
+        )
+        await interaction.response.edit_message(view=view)
 
 
 class ProfileEditorAddSchool(ui.Button["ProfileEditorView"]):
@@ -252,7 +330,7 @@ class ProfileEditorAddSchool(ui.Button["ProfileEditorView"]):
         view: ui.LayoutView = ui.LayoutView()
         view.add_item(
             ui.ActionRow(
-                ProfileEditorSchoolYear(self._editor, self._member, self._school)
+                ProfileEditorSchoolEntryYear(self._editor, self._member, self._school)
             )
         )
         await interaction.response.edit_message(view=view)
@@ -371,7 +449,7 @@ class ProfileEditorView(ui.LayoutView):
             container.add_item(
                 ui.Section(
                     ui.TextDisplay(
-                        f"{promotion.school.school_name} ({promotion.promotion_year})"
+                        f"{promotion.school.school_name}{promotion_years2str(' ', promotion.entry_year, promotion.exit_year)}"
                     ),
                     accessory=ProfileEditorRemovePromotion(self._member, promotion),
                 )

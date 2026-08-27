@@ -3,6 +3,7 @@ from typing import Iterator, List
 import discord
 from discord import ui
 
+from mp2i.cogs.school.school import promotion_years2str
 from mp2i.database.models.promotion import PromotionModel
 from mp2i.database.models.school import SchoolType
 from mp2i.utils.discord import has_any_roles_predicate
@@ -109,12 +110,13 @@ class ProfileView(ui.LayoutView):
         if len(member_wrapper.promotions) > 0:
             container.add_item(ui.Separator())
 
+            # TODO: can be refactored
             cpge: List[PromotionModel] = sorted(
                 filter(
                     lambda prom: prom.school.school_type == SchoolType.CPGE,
                     member_wrapper.promotions,
                 ),
-                key=lambda prom: (prom.promotion_year or 0, prom.school.school_name),
+                key=lambda prom: (prom.entry_year or 0, prom.school.school_name),
             )
 
             if len(list(cpge)) > 0:
@@ -122,12 +124,7 @@ class ProfileView(ui.LayoutView):
                 for promotion in cpge:
                     container.add_item(
                         ui.TextDisplay(
-                            f"{promotion.school.school_name}"
-                            + (
-                                f" ({promotion.promotion_year})"
-                                if promotion.promotion_year
-                                else ""
-                            )
+                            f"{promotion.school.school_name}{promotion_years2str(' ', promotion.entry_year, promotion.exit_year)}"
                         )
                     )
 
@@ -136,19 +133,14 @@ class ProfileView(ui.LayoutView):
                     lambda prom: prom.school.school_type == SchoolType.ECOLE,
                     member_wrapper.promotions,
                 ),
-                key=lambda prom: (prom.promotion_year or 0, prom.school.school_name),
+                key=lambda prom: (prom.entry_year or 0, prom.school.school_name),
             )
             if len(list(ecole)) > 0:
                 container.add_item(ui.TextDisplay("### Post-CPGE"))
                 for promotion in ecole:
                     container.add_item(
                         ui.TextDisplay(
-                            f"{promotion.school.school_name}"
-                            + (
-                                f" ({promotion.promotion_year})"
-                                if promotion.promotion_year
-                                else ""
-                            )
+                            f"{promotion.school.school_name}{promotion_years2str(' ', promotion.entry_year, promotion.exit_year)}"
                         )
                     )
 

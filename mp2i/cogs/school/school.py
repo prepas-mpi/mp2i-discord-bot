@@ -80,7 +80,8 @@ async def add_member_to_school(
     interaction: discord.Interaction,
     member: MemberWrapper,
     school: SchoolModel,
-    year: Optional[int],
+    entry_year: Optional[int],
+    exit_year: Optional[int],
 ) -> Optional[PromotionModel]:
     """
     Add a member to a school with the year
@@ -101,7 +102,7 @@ async def add_member_to_school(
     guild: GuildWrapper = GuildWrapper(interaction.guild, fetch=False)
     if len(member.promotions) >= guild.max_promotions:
         await interaction.edit_original_response(
-            content=f"Pas plus de {guild.max_promotions} promotions."
+            content=f"Vous ne pouvez pas être dans plus de {guild.max_promotions} promotions."
         )
         return
 
@@ -112,10 +113,12 @@ async def add_member_to_school(
         .values(
             school_id=school.school_id,
             member_id=member.member_id,
-            promotion_year=year,
+            entry_year=entry_year,
+            exit_year=exit_year,
         )
         .on_conflict_do_update(
-            constraint="promotions_school_member_cstrnt", set_={"promotion_year": year}
+            constraint="promotions_school_member_cstrnt",
+            set_={"entry_year": entry_year, "exit_year": exit_year},
         )
         .returning(PromotionModel)
     )
@@ -177,6 +180,29 @@ async def remove_member_from_school(
             PromotionModel.promotion_id == promotion.promotion_id
         )
     )
+
+
+def promotion_years2str(prefix: str, entry: Optional[int], exit: Optional[int]) -> str:
+    """
+    Covnert entry and exit years into string
+
+    Parameters
+    ----------
+    prefix: str
+        A prefix to the string representation
+
+    entry : Optional[int]
+        The entry year of a member in a school
+
+    exit : Optional[int]
+        The exit year of a member in a school
+
+    Returns
+    -------
+    str
+        The string representation of both values
+    """
+    return f"{prefix}({entry or '????'}-{exit or '????'})" if entry or exit else ""
 
 
 async def _autocomplete_schools_name(
@@ -366,16 +392,23 @@ class School(GroupCog, name="school", description="Gestion des établissements")
     @command(name="join", description="Rejoindre un établissement")
     @describe(
         name="Nom de l'établissement",
-        year="Année de promotion dans l'établissement",
+        entry_year="Année d'entrée dans l'établissement",
+        exit_year="Année de sortie de l'établissement",
         member="Membre cible",
     )
-    @rename(name="nom", year="année", member="membre")
+    @rename(
+        name="nom",
+        entry_year="annee_entree",
+        exit_year="annee_sortie",
+        member="membre",
+    )
     @autocomplete(name=_autocomplete_schools_name)
     async def join_school(
         self,
         interaction: discord.Interaction,
         name: str,
-        year: Optional[int],
+        entry_year: Optional[int],
+        exit_year: Optional[int],
         member: Optional[discord.Member],
     ) -> None:
         if not interaction.guild or not isinstance(interaction.user, discord.Member):
@@ -398,7 +431,7 @@ class School(GroupCog, name="school", description="Gestion des établissements")
             return
 
         prom: Optional[PromotionModel] = await add_member_to_school(
-            interaction, MemberWrapper(member), school, year
+            interaction, MemberWrapper(member), school, entry_year, exit_year
         )
         if not prom:
             return
@@ -407,8 +440,7 @@ class School(GroupCog, name="school", description="Gestion des établissements")
             logger.info("User %d is now part of school %d", member.id, school.school_id)
             await interaction.edit_original_response(
                 content=(
-                    f"Vous indiquez être ou avoir été élève de {school.school_name}"
-                    + (f" promotion {year}." if year else ".")
+                    f"Vous indiquez être ou avoir été élève de {school.school_name}{promotion_years2str(' ', entry_year, exit_year)}."
                 )
             )
         else:
@@ -420,8 +452,7 @@ class School(GroupCog, name="school", description="Gestion des établissements")
             )
             await interaction.edit_original_response(
                 content=(
-                    f"Vous indiquez que {member.mention} est ou a été élève de {school.school_name}"
-                    + (f" promotion {year}." if year else ".")
+                    f"Vous indiquez que {member.mention} est ou a été élève de {school.school_name}{promotion_years2str(' ', entry_year, exit_year)}"
                 ),
                 allowed_mentions=discord.AllowedMentions.none(),
             )

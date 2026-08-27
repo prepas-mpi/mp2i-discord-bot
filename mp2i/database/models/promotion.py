@@ -15,7 +15,9 @@ class PromotionModel(Base):
 
     __tablename__ = "promotions"
     __tableargs__ = (
-        UniqueConstraint("school_id", "member_id", name="promotions_school_member_cstrnt"),
+        UniqueConstraint(
+            "school_id", "member_id", name="promotions_school_member_cstrnt"
+        ),
     )
 
     promotion_id: Mapped[int] = mapped_column(
@@ -44,12 +46,21 @@ class PromotionModel(Base):
         info=dict(label="Referent ID", hint="Member's id"),
     )
 
-    promotion_year: Mapped[Optional[int]] = mapped_column(
+    entry_year: Mapped[Optional[int]] = mapped_column(
         BigInteger(),
         nullable=True,
         default=None,
         info=dict(
-            label="Promotion year", hint="Year of promotion of the member in the school"
+            label="Entry year", hint="Year in which the member joined the school"
+        ),
+    )
+
+    exit_year: Mapped[Optional[int]] = mapped_column(
+        BigInteger(),
+        nullable=True,
+        default=None,
+        info=dict(
+            label="Promotion year", hint="Year in which the member left the school"
         ),
     )
 

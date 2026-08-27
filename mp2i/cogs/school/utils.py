@@ -13,7 +13,7 @@ from mp2i.database.models.promotion import PromotionModel
 from mp2i.database.models.school import SchoolModel, SchoolType
 from mp2i.utils.paginator import ComponentsPaginator
 
-from .school import _autocomplete_schools_name, _find_school
+from .school import _autocomplete_schools_name, _find_school, promotion_years2str
 
 
 class SchoolCmdUtils(Cog):
@@ -66,7 +66,7 @@ class SchoolCmdUtils(Cog):
         # find members and their promotion's year of the school
         result: Optional[Result[MemberModel]] = database_executor.execute(
             select(MemberModel)
-            .add_columns(PromotionModel.promotion_year)
+            .add_columns(PromotionModel.entry_year, PromotionModel.exit_year)
             .join(PromotionModel, full=True)
             .where(PromotionModel.school_id == school.school_id)
             .distinct()
@@ -78,9 +78,14 @@ class SchoolCmdUtils(Cog):
             return
 
         # map membermodel to guild's member
-        members: List[Tuple[MemberModel, Optional[Member], int]] = list(
+        members: List[Tuple[MemberModel, Optional[Member], int, int]] = list(
             map(
-                lambda model: (model[0], guild.get_member(model[0].user_id), model[1]),
+                lambda model: (
+                    model[0],
+                    guild.get_member(model[0].user_id),
+                    model[1],
+                    model[2],
+                ),
                 result.all(),
             )
         )
@@ -88,11 +93,11 @@ class SchoolCmdUtils(Cog):
         # retrieve referent while looping of all members
         referent: Optional[str] = None
         entries: List[ui.Item[Any]] = []
-        for model, member, year in members:
+        for model, member, entry_year, exit_year in members:
             if not member:
                 continue
             text: str = f" `{member.name}`・{member.mention}" + (
-                f"・{year}" if year else ""
+                f"{promotion_years2str('・', entry_year, exit_year)}"
             )
             # looking at referent
             if model.member_id == school.referent_id:
