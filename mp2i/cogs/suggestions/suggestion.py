@@ -393,7 +393,9 @@ class Suggestions(GroupCog, name="suggestions", description="Gestion des suggest
                 SuggestionModel.suggestion_status == status,
             )
 
-        result: Optional[Result[SuggestionModel]] = database_executor.execute(statement)
+        result: Optional[Result[SuggestionModel]] = database_executor.execute(
+            statement.order_by(SuggestionModel.suggestion_id.desc())
+        )
 
         if not result:
             await interaction.response.send_message(
