@@ -19,6 +19,7 @@ import mp2i.database.executor as database_executor
 from mp2i.database.models.promotion import PromotionModel
 from mp2i.database.models.school import SchoolModel, SchoolType
 from mp2i.utils.discord import has_any_role, has_any_roles_predicate
+from mp2i.wrappers import ObjectWrapper
 from mp2i.wrappers.guild import GuildWrapper
 from mp2i.wrappers.member import MemberWrapper
 
@@ -80,8 +81,8 @@ async def add_member_to_school(
     interaction: discord.Interaction,
     member: MemberWrapper,
     school: SchoolModel,
-    entry_year: Optional[int],
-    exit_year: Optional[int],
+    entry_year: Optional[ObjectWrapper[Optional[int]]],
+    exit_year: Optional[ObjectWrapper[Optional[int]]],
 ) -> Optional[PromotionModel]:
     """
     Add a member to a school with the year
@@ -100,7 +101,10 @@ async def add_member_to_school(
     if not interaction.guild:
         return
     guild: GuildWrapper = GuildWrapper(interaction.guild, fetch=False)
-    if len(member.promotions) >= guild.max_promotions:
+    if (
+        len([prom for prom in member.promotions if prom.school_id != school.school_id])
+        >= guild.max_promotions
+    ):
         await interaction.edit_original_response(
             content=f"Vous ne pouvez pas être dans plus de {guild.max_promotions} promotions."
         )
@@ -108,19 +112,25 @@ async def add_member_to_school(
 
     # create a new promotion, if already exists, override promotion's yead
     # returning promotion model
+    base_statement = insert_psql(PromotionModel).values(
+        school_id=school.school_id, member_id=member.member_id
+    )
+
+    conflict_updated: dict[str, Optional[int]] = {}
+    if entry_year:
+        year = entry_year.unwrap()
+        base_statement = base_statement.values(entry_year=year)
+        conflict_updated["entry_year"] = year
+    if exit_year:
+        year = exit_year.unwrap()
+        base_statement = base_statement.values(exit_year=year)
+        conflict_updated["exit_year"] = year
+
     result: Optional[Result[PromotionModel]] = database_executor.execute(
-        insert_psql(PromotionModel)
-        .values(
-            school_id=school.school_id,
-            member_id=member.member_id,
-            entry_year=entry_year,
-            exit_year=exit_year,
-        )
-        .on_conflict_do_update(
+        base_statement.on_conflict_do_update(
             constraint="promotions_school_member_cstrnt",
-            set_={"entry_year": entry_year, "exit_year": exit_year},
-        )
-        .returning(PromotionModel)
+            set_=conflict_updated,
+        ).returning(PromotionModel)
     )
     if not result:
         return None
@@ -431,10 +441,18 @@ class School(GroupCog, name="school", description="Gestion des établissements")
             return
 
         prom: Optional[PromotionModel] = await add_member_to_school(
-            interaction, MemberWrapper(member), school, entry_year, exit_year
+            interaction,
+            MemberWrapper(member),
+            school,
+            ObjectWrapper(entry_year) if entry_year else None,
+            ObjectWrapper(exit_year) if exit_year else None,
         )
         if not prom:
             return
+
+        # get previously set years
+        entry_year = prom.entry_year
+        exit_year = prom.exit_year
 
         if interaction.user.id == member.id:
             logger.info("User %d is now part of school %d", member.id, school.school_id)

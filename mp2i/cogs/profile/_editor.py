@@ -15,6 +15,7 @@ from mp2i.database.models.member import MemberModel
 from mp2i.database.models.promotion import PromotionModel
 from mp2i.database.models.school import SchoolModel
 from mp2i.utils.paginator import ComponentsPaginator
+from mp2i.wrappers import ObjectWrapper
 from mp2i.wrappers.guild import GuildWrapper
 from mp2i.wrappers.member import MemberWrapper
 
@@ -220,7 +221,11 @@ class ProfileEditorSchoolExitYear(ui.Select):
             int(self.values[0]) if self.values[0] != "0" else None
         )
         prom: Optional[PromotionModel] = await add_member_to_school(
-            interaction, self._member, self._school, self._entry_year, exit_year
+            interaction,
+            self._member,
+            self._school,
+            ObjectWrapper(self._entry_year),
+            ObjectWrapper(exit_year),
         )
         self._member.as_model.promotions.append(prom)
         self._editor = self._editor._refresh_content()

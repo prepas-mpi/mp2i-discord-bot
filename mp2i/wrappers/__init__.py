@@ -44,3 +44,6 @@ class ObjectWrapper(Generic[T]):
         raise AttributeError(
             "Attribute %s not found in %s.", name, type(self._boxed).__name__
         )
+
+    def unwrap(self) -> T:
+        return self._boxed
