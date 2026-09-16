@@ -126,11 +126,16 @@ async def add_member_to_school(
         base_statement = base_statement.values(exit_year=year)
         conflict_updated["exit_year"] = year
 
-    result: Optional[Result[PromotionModel]] = database_executor.execute(
-        base_statement.on_conflict_do_update(
+    if entry_year or exit_year:
+        base_statement = base_statement.on_conflict_do_update(
             constraint="promotions_school_member_cstrnt",
             set_=conflict_updated,
-        ).returning(PromotionModel)
+        )
+    else:
+        base_statement = base_statement.on_conflict_do_nothing()
+
+    result: Optional[Result[PromotionModel]] = database_executor.execute(
+        base_statement.returning(PromotionModel)
     )
     if not result:
         return None
