@@ -194,8 +194,14 @@ class Roles(GroupCog, name="roles", description="Gestion des roles"):
 
         # check if user has currently MPI role
         was_mpi: bool = roles.get("MPI", [])[0] in member.roles
+
+        roles_to_remove = []
+        for role_name, role in roles.items():
+            if role_name != "Ex MPI":
+                roles_to_remove.append(role[0])
+
         # remove all previous roles for user
-        await member.remove_roles(*map(lambda r: r[0], roles.values()))
+        await member.remove_roles(*roles_to_remove)
         for role_name, (role, emoji) in roles.items():
             if emoji != payload.emoji.id:
                 continue
