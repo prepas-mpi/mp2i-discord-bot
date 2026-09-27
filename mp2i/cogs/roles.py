@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import logging
 from typing import Optional, Tuple
 
@@ -52,6 +53,8 @@ class Roles(GroupCog, name="roles", description="Gestion des roles"):
         bot.tree.add_command(ctx_menu)
         # caching roles
         self._roles: dict[int, dict[str, tuple[discord.Role, int]]] = {}
+        # cooldown
+        self._cooldowns: dict[int, dict[int, datetime.datetime]] = {}
 
     async def _prof_verification(
         self, member: discord.Member, role: discord.Role
@@ -188,7 +191,27 @@ class Roles(GroupCog, name="roles", description="Gestion des roles"):
         if guild.roles_message_id != payload.message_id:
             return
 
+        if not guild.id in self._cooldowns:
+            self._cooldowns[guild.id] = {}
+
         member: discord.Member = payload.member
+
+        now: datetime.datetime = datetime.datetime.now(tz=datetime.timezone.utc)
+
+        cooldowns_to_delete = []
+        for user_id, timeout in self._cooldowns[guild.id].items():
+            if timeout < now:
+                cooldowns_to_delete.append(user_id)
+        for user_id in cooldowns_to_delete:
+            del self._cooldowns[guild.id][user_id]
+
+        if not payload.member.id in self._cooldowns[guild.id]:
+            self._cooldowns[guild.id][payload.member.id] = now + datetime.timedelta(
+                seconds=15
+            )  # TODO : maybe do not hardcode value
+        else:
+            return
+
         # get desired role
         roles: dict[str, Tuple[discord.Role, int]] = self._roles[guild.id]
 
@@ -202,6 +225,7 @@ class Roles(GroupCog, name="roles", description="Gestion des roles"):
 
         # remove all previous roles for user
         await member.remove_roles(*roles_to_remove)
+        roles_to_add: list[discord.Role] = []
         for role_name, (role, emoji) in roles.items():
             if emoji != payload.emoji.id:
                 continue
@@ -214,8 +238,11 @@ class Roles(GroupCog, name="roles", description="Gestion des roles"):
                 and was_mpi
                 and (ex_mpi := roles.get("Ex MPI", None))
             ):
-                await member.add_roles(ex_mpi[0])
-            await member.add_roles(role)
+                roles_to_add.append(ex_mpi[0])
+
+            roles_to_add.append(role)
+            # in loop to prevent calls with empty list
+            await member.add_roles(*roles_to_add)
             return
 
 
